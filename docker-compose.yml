@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  postgres:
+    build:
+      context: .
+      dockerfile: Dockerfile.postgres  
+    container_name: patient_service_db
+    restart: always
+    env_file: 
+      - .env  
+    ports:
+      - "5000:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  patient-service:
+    build:
+      context: .
+      dockerfile: ./patient_service/Dockerfile 
+    container_name: patient_service
+    restart: always
+    depends_on:
+      - postgres  
+    ports:
+      - "4000:4000" 
+
+volumes:
+  postgres_data:
