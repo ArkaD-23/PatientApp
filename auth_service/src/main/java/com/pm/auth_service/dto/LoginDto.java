@@ -8,19 +8,13 @@ import lombok.Setter;
 
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
-public class RegisterDto {
+@NoArgsConstructor
+public class LoginDto {
 
     @JsonProperty("email")
     private String email;
 
     @JsonProperty("password")
     private String password;
-
-    @JsonProperty("fullname")
-    private String fullname;
-
-    @JsonProperty("role")
-    private String role;
 }
