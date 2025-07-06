@@ -1,19 +1,16 @@
 package com.pm.auth_service.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class LoginResponseDto {
-    private boolean status;
+
+    private Boolean status;
     private String token;
-
-    public LoginResponseDto(boolean status, String token) {
-        this.status = status;
-        this.token = token;
-    }
-
-    public boolean isStatus() {
-        return status;
-    }
-
-    public String getToken() {
-        return token;
-    }
 }

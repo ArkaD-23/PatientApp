@@ -1,19 +1,19 @@
 package com.pm.auth_service.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.Date;
 import java.util.UUID;
 
-@Entity
-@Table(name = "users_details")
+@Document(collection = "users_details")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -21,32 +21,23 @@ import java.util.UUID;
 public class User {
 
     @Id
-    @GeneratedValue
-    @Column(name = "id", nullable = false)
-    private UUID id;
+    private UUID id = UUID.randomUUID();
 
-    @Column(name = "email", unique = true, nullable = false)
     private String email;
 
-    @Column(name = "password", nullable = false)
     private String password;
 
-    @Column(name = "role")
     private String role;
 
-    @Column(name = "username")
     private String username;
 
-    @Column(name = "fullname", nullable = false)
     private String fullname;
 
-    @Column(name = "creation_timestamp")
-    @CreationTimestamp
+    @CreatedDate
     @JsonProperty("creation_timestamp")
     private Date creationTimestamp;
 
-    @Column(name = "last_update_timestamp")
-    @UpdateTimestamp
+    @LastModifiedDate
     @JsonProperty("last_update_timestamp")
     private Date lastUpdateTimestamp;
 }

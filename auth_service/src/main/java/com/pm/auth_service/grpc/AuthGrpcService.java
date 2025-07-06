@@ -4,11 +4,9 @@ import com.pm.auth_service.dto.BooleanDto;
 import com.pm.auth_service.dto.LoginDto;
 import com.pm.auth_service.dto.RegisterDto;
 import com.pm.auth_service.dto.LoginResponseDto;
+import com.pm.auth_service.exception.UserAlreadyExistsException;
 import com.pm.auth_service.service.AuthService;
-import com.pm.auth_service.grpc.AuthServiceGrpc;
-import com.pm.auth_service.grpc.RegisterRequest;
-import com.pm.auth_service.grpc.LoginRequest;
-import com.pm.auth_service.grpc.BooleanResponse;
+import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import net.devh.boot.grpc.server.service.GrpcService;
 
@@ -23,30 +21,48 @@ public class AuthGrpcService extends AuthServiceGrpc.AuthServiceImplBase {
 
     @Override
     public void register(RegisterRequest request, StreamObserver<BooleanResponse> responseObserver) {
-        BooleanDto result = authService.registerUser(new RegisterDto(
-                request.getEmail(),
-                request.getPassword(),
-                request.getFullname(),
-                request.getRole()
-        ));
 
-        BooleanResponse response = BooleanResponse.newBuilder()
-                .setStatus(result.getStatus())
-                .build();
+        try{
+            BooleanDto result = authService.registerUser(new RegisterDto(
+                    request.getEmail(),
+                    request.getPassword(),
+                    request.getFullname(),
+                    request.getRole()
+            ));
 
-        responseObserver.onNext(response);
-        responseObserver.onCompleted();
+            BooleanResponse response = BooleanResponse.newBuilder()
+                    .setStatus(result.getStatus())
+                    .build();
+
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+        } catch (UserAlreadyExistsException e) {
+            responseObserver.onError(
+                    Status.ALREADY_EXISTS
+                            .withDescription(e.getMessage())
+                            .asRuntimeException()
+            );
+        } catch (Exception e) {
+            responseObserver.onError(
+                    Status.INTERNAL
+                            .withDescription("Internal server error")
+                            .augmentDescription(e.getMessage())
+                            .asRuntimeException()
+            );
+        }
+
     }
 
     @Override
-    public void login(LoginRequest request, StreamObserver<BooleanResponse> responseObserver) {
+    public void login(LoginRequest request, StreamObserver<LoginResponse> responseObserver) {
         LoginResponseDto result = authService.userLogin(new LoginDto(
                 request.getEmail(),
                 request.getPassword()
         ));
 
-        BooleanResponse response = BooleanResponse.newBuilder()
-                .setStatus(result.isStatus())
+        LoginResponse response = LoginResponse.newBuilder()
+                .setStatus(result.getStatus())
+                .setToken(result.getToken())
                 .build();
 
         responseObserver.onNext(response);

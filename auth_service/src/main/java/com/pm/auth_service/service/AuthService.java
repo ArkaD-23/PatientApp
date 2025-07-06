@@ -35,7 +35,7 @@ public class AuthService {
 
     public BooleanDto registerUser(@Valid RegisterDto registerDto) {
         if (userRepository.existsByEmail(registerDto.getEmail())) {
-            return new BooleanDto(false);
+            throw new UserAlreadyExistsException("Email is already registered.");
         }
 
         User user = new User();
@@ -57,6 +57,7 @@ public class AuthService {
             authenticationManager.authenticate(authToken);
             User user = userRepository.findByEmail(loginDto.getEmail());
             String jwt = jwtUtil.generateToken(user.getEmail(), user.getRole());
+
             return new LoginResponseDto(true, jwt);
         } catch (AuthenticationException e) {
             return new LoginResponseDto(false, "");
