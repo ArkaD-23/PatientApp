@@ -1,6 +1,7 @@
 package com.pm.auth_service.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.pm.auth_service.model.User;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,7 +13,7 @@ import java.util.UUID;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class ProfileDto {
+public class ProfileResponseDto {
 
     @JsonProperty("id")
     private UUID id;
@@ -20,10 +21,20 @@ public class ProfileDto {
     @JsonProperty("fullname")
     private String fullname;
 
+    @JsonProperty("username")
+    private String username;
+
     @JsonProperty("email")
     private String email;
 
-    @JsonProperty("password")
-    private String password;
+    @JsonProperty("role")
+    private String role;
 
+    public ProfileResponseDto(User user) {
+        this.id = user.getId();
+        this.fullname = user.getFullname();
+        this.username = user.getUsername();
+        this.email = user.getEmail();
+        this.role = user.getRole();
+    }
 }

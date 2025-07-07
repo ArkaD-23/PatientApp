@@ -1,14 +1,16 @@
 package com.pm.auth_service.grpc;
 
-import com.pm.auth_service.dto.BooleanDto;
-import com.pm.auth_service.dto.LoginDto;
-import com.pm.auth_service.dto.RegisterDto;
-import com.pm.auth_service.dto.LoginResponseDto;
+import com.mongodb.internal.bulk.DeleteRequest;
+import com.pm.auth_service.dto.*;
+import com.pm.auth_service.exception.InvalidTokenException;
 import com.pm.auth_service.exception.UserAlreadyExistsException;
+import com.pm.auth_service.exception.UserNotFoundException;
 import com.pm.auth_service.service.AuthService;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import net.devh.boot.grpc.server.service.GrpcService;
+
+import java.util.UUID;
 
 @GrpcService
 public class AuthGrpcService extends AuthServiceGrpc.AuthServiceImplBase {
@@ -67,5 +69,99 @@ public class AuthGrpcService extends AuthServiceGrpc.AuthServiceImplBase {
 
         responseObserver.onNext(response);
         responseObserver.onCompleted();
+    }
+
+    public void update(UpdateRequest request, StreamObserver<ProfileResponse> responseObserver) {
+
+        try {
+            ProfileResponseDto result = authService.userUpdate(
+                    new ProfileDto(
+                            UUID.fromString(request.getId()),
+                            request.getFullname(),
+                            request.getEmail(),
+                            request.getPassword()
+                    ),
+                    request.getToken());
+
+            ProfileResponse response = ProfileResponse.newBuilder()
+                    .setId(result.getId().toString())
+                    .setFullname(result.getFullname())
+                    .setUsername(result.getUsername())
+                    .setEmail(result.getEmail())
+                    .setRole(result.getRole())
+                    .build();
+
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+        } catch (UserNotFoundException e) {
+            responseObserver.onError(
+                    Status.NOT_FOUND
+                            .withDescription(e.getMessage())
+                            .asRuntimeException()
+            );
+        } catch (InvalidTokenException e) {
+            responseObserver.onError(
+                    Status.INVALID_ARGUMENT
+                            .withDescription(e.getMessage())
+                            .asRuntimeException()
+            );
+        }
+
+    }
+
+    public void getUser(GetUserRequest request, StreamObserver<ProfileResponse> responseObserver) {
+
+        try {
+            ProfileResponseDto result = authService.getUser(request.getUsername(), request.getToken());
+
+            ProfileResponse response = ProfileResponse.newBuilder()
+                    .setId(result.getId().toString())
+                    .setFullname(result.getFullname())
+                    .setUsername(result.getUsername())
+                    .setEmail(result.getEmail())
+                    .setRole(result.getRole())
+                    .build();
+
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+        } catch (UserNotFoundException e) {
+            responseObserver.onError(
+                    Status.NOT_FOUND
+                            .withDescription(e.getMessage())
+                            .asRuntimeException()
+            );
+        } catch (InvalidTokenException e) {
+            responseObserver.onError(
+                    Status.INVALID_ARGUMENT
+                            .withDescription(e.getMessage())
+                            .asRuntimeException()
+            );
+        }
+    }
+
+    public void deleteUser(DeleteRequest request, StreamObserver<BooleanResponse> responseObserver) {
+
+        try {
+            BooleanDto result = authService.deleteUser(request.getId(), request.getToken());
+
+            BooleanResponse response = BooleanResponse.newBuilder()
+                    .setStatus(result.getStatus())
+                    .build();
+
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+        } catch (UserNotFoundException e) {
+            responseObserver.onError(
+                    Status.NOT_FOUND
+                            .withDescription(e.getMessage())
+                            .asRuntimeException()
+            );
+        } catch (InvalidTokenException e) {
+            responseObserver.onError(
+                    Status.INVALID_ARGUMENT
+                            .withDescription(e.getMessage())
+                            .asRuntimeException()
+            );
+        }
     }
 }

@@ -8,6 +8,9 @@ option java_multiple_files = true;
 service AuthService {
   rpc Register(RegisterRequest) returns (BooleanResponse);
   rpc Login(LoginRequest) returns (LoginResponse);
+  rpc Update(UpdateRequest) returns (ProfileResponse);
+  rpc GetUser(GetUserRequest) returns (ProfileResponse);
+  rpc DeleteUser(DeleteRequest) returns (BooleanResponse);
 }
 
 message RegisterRequest {
@@ -22,6 +25,24 @@ message LoginRequest {
   string password = 2;
 }
 
+message UpdateRequest {
+  string id = 1;
+  string fullname = 2;
+  string email = 3;
+  string password = 4;
+  string token = 5;
+}
+
+message GetUserRequest {
+  string username = 1;
+  string token = 2;
+}
+
+message DeleteRequest {
+  string id = 1;
+  string token = 2;
+}
+
 message BooleanResponse {
   bool status = 1;
 }
@@ -29,4 +50,12 @@ message BooleanResponse {
 message LoginResponse {
   bool status = 1;
   string token = 2;
+}
+
+message ProfileResponse {
+  string id = 1;
+  string fullname = 2;
+  string username = 3;
+  string email = 4;
+  string role = 5;
 }
