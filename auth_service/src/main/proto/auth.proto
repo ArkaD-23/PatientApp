@@ -10,7 +10,7 @@ service AuthService {
   rpc Login(LoginRequest) returns (LoginResponse);
   rpc Update(UpdateRequest) returns (ProfileResponse);
   rpc GetUser(GetUserRequest) returns (ProfileResponse);
-  rpc DeleteUser(DeleteRequest) returns (BooleanResponse);
+  rpc DeleteUser(DeleteUserRequest) returns (BooleanResponse);
 }
 
 message RegisterRequest {
@@ -38,7 +38,7 @@ message GetUserRequest {
   string token = 2;
 }
 
-message DeleteRequest {
+message DeleteUserRequest {
   string id = 1;
   string token = 2;
 }

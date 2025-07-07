@@ -13,6 +13,8 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 @Service
 public class AuthService {
 
@@ -99,14 +101,12 @@ public class AuthService {
         return new ProfileResponseDto(user);
     }
 
-    public BooleanDto deleteUser(String username, String token) {
+    public BooleanDto deleteUser(UUID id, String token) {
         if (!jwtUtil.validateToken(token)) {
             throw new InvalidTokenException("Invalid token");
         }
-        User user = userRepository.findByUsername(username);
-        if (user == null) {
-            throw new UserNotFoundException("User not found");
-        }
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
 
         userRepository.delete(user);
         return new BooleanDto(true);

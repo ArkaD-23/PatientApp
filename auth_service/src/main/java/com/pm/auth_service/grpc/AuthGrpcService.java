@@ -1,6 +1,5 @@
 package com.pm.auth_service.grpc;
 
-import com.mongodb.internal.bulk.DeleteRequest;
 import com.pm.auth_service.dto.*;
 import com.pm.auth_service.exception.InvalidTokenException;
 import com.pm.auth_service.exception.UserAlreadyExistsException;
@@ -139,10 +138,10 @@ public class AuthGrpcService extends AuthServiceGrpc.AuthServiceImplBase {
         }
     }
 
-    public void deleteUser(DeleteRequest request, StreamObserver<BooleanResponse> responseObserver) {
+    public void deleteUser(DeleteUserRequest request, StreamObserver<BooleanResponse> responseObserver) {
 
         try {
-            BooleanDto result = authService.deleteUser(request.getId(), request.getToken());
+            BooleanDto result = authService.deleteUser(UUID.fromString(request.getId()), request.getToken());
 
             BooleanResponse response = BooleanResponse.newBuilder()
                     .setStatus(result.getStatus())
