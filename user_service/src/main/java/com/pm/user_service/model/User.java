@@ -1,6 +1,7 @@
-package com.pm.auth_service.model;
+package com.pm.user_service.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.persistence.Column;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -21,23 +22,29 @@ import java.util.UUID;
 public class User {
 
     @Id
+    @Column(name = "id")
     private UUID id = UUID.randomUUID();
 
+    @Column(name = "email")
     private String email;
 
+    @Column(name = "password")
     private String password;
 
+    @Column(name = "role")
     private String role;
 
+    @Column(name = "username")
     private String username;
 
+    @Column(name = "fullname")
     private String fullname;
 
     @CreatedDate
-    @JsonProperty("creation_timestamp")
+    @Column(name = "creatiion_timestamp")
     private Date creationTimestamp;
 
     @LastModifiedDate
-    @JsonProperty("last_update_timestamp")
+    @Column(name = "last_update_timestamp")
     private Date lastUpdateTimestamp;
 }

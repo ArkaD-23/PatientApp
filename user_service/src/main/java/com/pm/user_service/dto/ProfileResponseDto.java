@@ -1,7 +1,7 @@
-package com.pm.auth_service.dto;
+package com.pm.user_service.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.pm.auth_service.model.User;
+import com.pm.user_service.model.User;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

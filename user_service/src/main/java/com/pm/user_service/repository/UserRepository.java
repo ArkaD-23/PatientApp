@@ -1,6 +1,6 @@
-package com.pm.auth_service.repository;
+package com.pm.user_service.repository;
 
-import com.pm.auth_service.model.User;
+import com.pm.user_service.model.User;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
 import java.util.UUID;
