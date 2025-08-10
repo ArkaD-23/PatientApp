@@ -1,23 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: user-service
+  name: api-gateway
   namespace: patient-app
 spec:
   replicas: 1
   selector:
-    matchLabels: { app: user-service }
+    matchLabels: { app: api-gateway }
   template:
     metadata:
-      labels: { app: user-service }
+      labels: { app: api-gateway }
     spec:
       containers:
-        - name: user
-          image: user-service:latest
+        - name: gateway
+          image: api-gateway:latest
           ports:
-            - containerPort: 9090
             - containerPort: 8080
           readinessProbe:
             httpGet: { path: /actuator/health, port: 8080 }
-            initialDelaySeconds: 10
+            initialDelaySeconds: 5
             periodSeconds: 10

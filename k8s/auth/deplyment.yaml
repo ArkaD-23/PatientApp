@@ -6,12 +6,10 @@ metadata:
 spec:
   replicas: 1
   selector:
-    matchLabels:
-      app: auth-service
+    matchLabels: { app: auth-service }
   template:
     metadata:
-      labels:
-        app: auth-service
+      labels: { app: auth-service }
     spec:
       containers:
         - name: auth
@@ -20,8 +18,6 @@ spec:
             - containerPort: 9091
             - containerPort: 8081
           readinessProbe:
-            httpGet:
-              path: /actuator/health
-              port: 8081
+            httpGet: { path: /actuator/health, port: 8081 }
             initialDelaySeconds: 10
             periodSeconds: 10

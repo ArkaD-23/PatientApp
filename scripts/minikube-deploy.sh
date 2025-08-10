@@ -1,50 +1,50 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 NAMESPACE=patient-app
-USER_IMG=user-service:latest
-AUTH_IMG=auth-service:latest
 
-echo "1) Start minikube (if not running)"
-minikube status >/dev/null 2>&1 || minikube start --driver=docker
-
-echo "2) Install Istio (if not installed)"
-if ! istioctl version >/dev/null 2>&1; then
-  echo "Install Istio CLI or add it to PATH first."
+if ! minikube status >/dev/null 2>&1; then
+  echo "Starting minikube..."
+  minikube start --driver=docker
 fi
-# install istio in demo profile (idempotent)
-istioctl install --set profile=demo -y
 
-echo "3) Create namespace with sidecar injection"
-kubectl apply -f ../k8s/namespace.yaml
+echo "Ensuring istioctl installed or not....."
+if ! command -v istioctl >/dev/null 2>&1; then
+  echo "Please install istioctl and add to PATH; aborting."
+  exit 1
+fi
 
-echo "4) Build docker images inside minikube's docker daemon"
+echo "Installing istio....."
+istioctl install --set profile=demo -y || true
+
+kubectl apply -f "${ROOT_DIR}/k8s/namespace.yaml"
+
+echo "Building docker images....."
 eval $(minikube docker-env)
-echo "Building user image..."
-docker build -t ${USER_IMG} ../user_service
-echo "Building auth image..."
-docker build -t ${AUTH_IMG} ../auth_service
-# return to host docker env
+docker build -t user-service:latest "${ROOT_DIR}/user_service"
+docker build -t auth-service:latest "${ROOT_DIR}/auth_service"
+docker build -t api-gateway:latest "${ROOT_DIR}/api_gateway"
 eval $(minikube docker-env -u)
 
-echo "5) Deploy services"
-kubectl apply -f ../k8s/user/service.yaml
-kubectl apply -f ../k8s/user/deployment.yaml
-kubectl apply -f ../k8s/auth/service.yaml
-kubectl apply -f ../k8s/auth/deployment.yaml
+echo "Applying k8s manifests....."
+kubectl apply -f "${ROOT_DIR}/k8s/user/service.yaml"
+kubectl apply -f "${ROOT_DIR}/k8s/user/deployment.yaml"
+kubectl apply -f "${ROOT_DIR}/k8s/auth/service.yaml"
+kubectl apply -f "${ROOT_DIR}/k8s/auth/deployment.yaml"
+kubectl apply -f "${ROOT_DIR}/k8s/gateway/service.yaml"
+kubectl apply -f "${ROOT_DIR}/k8s/gateway/deployment.yaml"
 
-echo "6) Deploy Istio gateway & virtual service"
-kubectl apply -f ../k8s/istio/gateway.yaml
-kubectl apply -f ../k8s/istio/virtualservice.yaml
-kubectl apply -f ../k8s/istio/destinationrule.yaml
+echo "Istio resources....."
+kubectl apply -f "${ROOT_DIR}/k8s/istio/gateway.yaml"
+kubectl apply -f "${ROOT_DIR}/k8s/istio/virtualservice.yaml"
+kubectl apply -f "${ROOT_DIR}/k8s/istio/destinationrule.yaml"
 
-echo "7) Wait for pods ready"
+echo "Waiting for pods to get ready....."
 kubectl -n ${NAMESPACE} wait --for=condition=ready pod -l app=user-service --timeout=120s || true
 kubectl -n ${NAMESPACE} wait --for=condition=ready pod -l app=auth-service --timeout=120s || true
+kubectl -n ${NAMESPACE} wait --for=condition=ready pod -l app=api-gateway --timeout=120s || true
 
-echo "8) Get ingress IP/port"
-INGRESS_IP=$(minikube ip)
-INGRESS_PORT=80
-echo "Gateway exposed at http://${INGRESS_IP}:${INGRESS_PORT}"
-
-echo "Done. To test, run commands in README or use curl/postman."
+echo "Show ingress url"
+minikube service istio-ingressgateway -n istio-system --url
+echo "Done. Test via the Ingress URL."
