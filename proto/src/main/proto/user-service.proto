@@ -2,11 +2,11 @@ syntax = "proto3";
 
 package user;
 
-option java_package = "com.pm.user_service.grpc";
+option java_package = "com.pm.userservice.grpc";
 option java_multiple_files = true;
 
 service UserService {
-  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
+  rpc CreateUser(CreateUserRequest) returns (BooleanResponse);
   rpc ValidateUser(ValidateUserRequest) returns (BooleanResponse);
   rpc Update(UpdateRequest) returns (ProfileResponse);
   rpc GetUser(GetUserRequest) returns (ProfileResponse);
@@ -18,11 +18,6 @@ message CreateUserRequest {
   string email = 2;
   string password = 3;
   string role = 4;
-}
-
-message CreateUserResponse {
-  bool success = 1;
-  string message = 2;
 }
 
 message ValidateUserRequest {
@@ -39,7 +34,7 @@ message UpdateRequest {
 }
 
 message GetUserRequest {
-  string username = 1;
+  string email = 1;
   string token = 2;
 }
 
@@ -55,9 +50,8 @@ message BooleanResponse {
 message ProfileResponse {
   string id = 1;
   string fullname = 2;
-  string username = 3;
-  string email = 4;
-  string role = 5;
-  bool success = 6;
-  string message = 7;
+  string email = 3;
+  string role = 4;
+  bool success = 5;
+  string message = 6;
 }

@@ -42,7 +42,6 @@ public class UserService {
         return true;
     }
 
-
     public boolean validateUser(String email, String password) {
         User user = userRepository.findByEmail(email);
         return user != null && passwordEncoder.matches(password, user.getPassword());

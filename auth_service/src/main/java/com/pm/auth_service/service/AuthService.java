@@ -2,7 +2,10 @@ package com.pm.auth_service.service;
 
 import com.pm.auth_service.dto.*;
 import com.pm.auth_service.exception.UserAlreadyExistsException;
-import com.pm.user_service.grpc.*;
+import com.pm.userservice.grpc.BooleanResponse;
+import com.pm.userservice.grpc.CreateUserRequest;
+import com.pm.userservice.grpc.UserServiceGrpc;
+import com.pm.userservice.grpc.ValidateUserRequest;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -24,10 +27,10 @@ public class AuthService {
                 .setRole(registerDto.getRole())
                 .build();
 
-        CreateUserResponse response = userStub.createUser(request);
+        BooleanResponse response = userStub.createUser(request);
 
-        if (!response.getSuccess()) {
-            throw new UserAlreadyExistsException(response.getMessage());
+        if (!response.getStatus()) {
+            throw new UserAlreadyExistsException("User already exists");
         }
 
         return new BooleanDto(true);

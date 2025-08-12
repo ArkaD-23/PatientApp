@@ -138,9 +138,10 @@
         </dependency>
         <dependency>
             <groupId>com.pm</groupId>
-            <artifactId>user_service</artifactId>
+            <artifactId>proto</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
+
     </dependencies>
 
     <build>

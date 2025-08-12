@@ -6,6 +6,7 @@ import com.pm.user_service.dto.ProfileResponseDto;
 import com.pm.user_service.exception.InvalidTokenException;
 import com.pm.user_service.exception.UserNotFoundException;
 import com.pm.user_service.service.UserService;
+import com.pm.userservice.grpc.*;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import net.devh.boot.grpc.server.service.GrpcService;
@@ -23,15 +24,14 @@ public class UserGrpcService extends UserServiceGrpc.UserServiceImplBase {
     }
 
     @Override
-    public void createUser(CreateUserRequest request, StreamObserver<CreateUserResponse> responseObserver) {
+    public void createUser(CreateUserRequest request, StreamObserver<BooleanResponse> responseObserver) {
         try {
             boolean userCreated = userService.createUser(
                     new ProfileDto(request.getFullname(), request.getEmail(), request.getPassword(), request.getRole())
             );
 
-            CreateUserResponse response = CreateUserResponse.newBuilder()
-                    .setSuccess(userCreated)
-                    .setMessage(userCreated ? "User created" : "User already exists")
+            BooleanResponse response = BooleanResponse.newBuilder()
+                    .setStatus(userCreated)
                     .build();
 
             responseObserver.onNext(response);
@@ -78,7 +78,6 @@ public class UserGrpcService extends UserServiceGrpc.UserServiceImplBase {
             ProfileResponse response = ProfileResponse.newBuilder()
                     .setId(result.getId().toString())
                     .setFullname(result.getFullname())
-                    .setUsername(result.getUsername())
                     .setEmail(result.getEmail())
                     .setRole(result.getRole())
                     .build();
@@ -95,12 +94,11 @@ public class UserGrpcService extends UserServiceGrpc.UserServiceImplBase {
     @Override
     public void getUser(GetUserRequest request, StreamObserver<ProfileResponse> responseObserver) {
         try {
-            ProfileResponseDto result = userService.getUser(request.getUsername(), request.getToken());
+            ProfileResponseDto result = userService.getUser(request.getEmail(), request.getToken());
 
             ProfileResponse response = ProfileResponse.newBuilder()
                     .setId(result.getId().toString())
                     .setFullname(result.getFullname())
-                    .setUsername(result.getUsername())
                     .setEmail(result.getEmail())
                     .setRole(result.getRole())
                     .build();

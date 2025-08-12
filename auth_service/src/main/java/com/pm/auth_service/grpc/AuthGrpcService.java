@@ -3,6 +3,7 @@ package com.pm.auth_service.grpc;
 import com.pm.auth_service.dto.*;
 import com.pm.auth_service.exception.UserAlreadyExistsException;
 import com.pm.auth_service.service.AuthService;
+import com.pm.authservice.grpc.*;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import net.devh.boot.grpc.server.service.GrpcService;

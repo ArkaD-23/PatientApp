@@ -1,16 +1,30 @@
 package com.pm.gateway.config;
 
-import net.devh.boot.grpc.client.inject.GrpcClient;
+import com.pm.authservice.grpc.AuthServiceGrpc;
+import com.pm.userservice.grpc.UserServiceGrpc;
+import io.grpc.ManagedChannel;
+import io.grpc.ManagedChannelBuilder;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import com.pm.user_service.grpc.UserServiceGrpc;
-import com.pm.auth_service.grpc.AuthServiceGrpc;
 
 @Configuration
 public class GrpcClientConfig {
 
-    @GrpcClient("user-service")
-    public UserServiceGrpc.UserServiceBlockingStub userServiceStub;
+    @Bean
+    public UserServiceGrpc.UserServiceBlockingStub userServiceStub() {
+        ManagedChannel channel = ManagedChannelBuilder
+                .forAddress("localhost", 9090)
+                .usePlaintext()
+                .build();
+        return UserServiceGrpc.newBlockingStub(channel);
+    }
 
-    @GrpcClient("auth-service")
-    public AuthServiceGrpc.AuthServiceBlockingStub authServiceStub;
+    @Bean
+    public AuthServiceGrpc.AuthServiceBlockingStub authServiceStub() {
+        ManagedChannel channel = ManagedChannelBuilder
+                .forAddress("localhost", 9091)
+                .usePlaintext()
+                .build();
+        return AuthServiceGrpc.newBlockingStub(channel);
+    }
 }

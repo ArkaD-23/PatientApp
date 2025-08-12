@@ -1,6 +1,6 @@
 package com.pm.auth_service.config;
 
-import com.pm.user_service.grpc.UserServiceGrpc;
+import com.pm.userservice.grpc.UserServiceGrpc;
 import io.grpc.Channel;
 import net.devh.boot.grpc.client.inject.GrpcClient;
 import org.springframework.context.annotation.Bean;
