@@ -1,0 +1,10 @@
+grpc:
+  client:
+    userService:
+      address: "static://localhost:9090"
+      negotiation-type: plaintext
+    authService:
+      address: "static://localhost:9091"
+      negotiation-type: plaintext
+  server:
+    port: -1

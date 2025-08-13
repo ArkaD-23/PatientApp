@@ -6,16 +6,18 @@ import com.pm.userservice.grpc.BooleanResponse;
 import com.pm.userservice.grpc.CreateUserRequest;
 import com.pm.userservice.grpc.UserServiceGrpc;
 import com.pm.userservice.grpc.ValidateUserRequest;
+import net.devh.boot.grpc.client.inject.GrpcClient;
 import org.springframework.stereotype.Service;
 
 @Service
 public class AuthService {
 
-    private final UserServiceGrpc.UserServiceBlockingStub userStub;
+    @GrpcClient("userService")
+    private UserServiceGrpc.UserServiceBlockingStub userStub;
+
     private final JwtUtil jwtUtil;
 
-    public AuthService(UserServiceGrpc.UserServiceBlockingStub userStub, JwtUtil jwtUtil) {
-        this.userStub = userStub;
+    public AuthService(JwtUtil jwtUtil) {
         this.jwtUtil = jwtUtil;
     }
 

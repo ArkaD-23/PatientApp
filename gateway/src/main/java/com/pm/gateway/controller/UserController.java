@@ -2,16 +2,16 @@ package com.pm.gateway.controller;
 
 import com.pm.gateway.dto.*;
 import com.pm.userservice.grpc.*;
-import lombok.RequiredArgsConstructor;
+import net.devh.boot.grpc.client.inject.GrpcClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-@RequiredArgsConstructor
 @RestController
 @RequestMapping("/v1/users")
 public class UserController {
 
-    private final UserServiceGrpc.UserServiceBlockingStub userServiceStub;
+    @GrpcClient("userService")
+    private UserServiceGrpc.UserServiceBlockingStub userServiceStub;
 
     @GetMapping("")
     public ResponseEntity<ProfileDto> getProfile(@RequestBody GetDto dto) {

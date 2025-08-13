@@ -2,19 +2,19 @@ package com.pm.gateway.controller;
 
 import com.pm.authservice.grpc.*;
 import com.pm.gateway.dto.*;
-import lombok.RequiredArgsConstructor;
+import net.devh.boot.grpc.client.inject.GrpcClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@RequiredArgsConstructor
 @RestController
 @RequestMapping("/v1/auth")
 public class AuthController {
 
-    private final AuthServiceGrpc.AuthServiceBlockingStub authServiceStub;
+    @GrpcClient("authService")
+    private AuthServiceGrpc.AuthServiceBlockingStub authServiceStub;
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDto> login(@RequestBody LoginDto dto) {
