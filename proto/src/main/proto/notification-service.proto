@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package notification;
+
+option java_package = "com.pm.notificationservice.grpc";
+option java_multiple_files = true;
+
+service NotificationService {
+  rpc SendNotification(NotificationRequest) returns (NotificationResponse);
+}
+
+message NotificationRequest {
+  string appointmentId = 1;
+  string patientId = 2;
+  string doctorId = 3;
+  string timeSlot = 4;
+}
+
+message NotificationResponse {
+  string status = 1;
+}

@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package appointment;
+
+option java_package = "com.pm.appointmentservice.grpc";
+option java_multiple_files = true;
+
+service AppointmentService {
+  rpc BookAppointment(BookAppointmentRequest) returns (BookAppointmentResponse);
+}
+
+message BookAppointmentRequest {
+  string patientId = 1;
+  string doctorId = 2;
+  string timeSlot = 3;
+}
+
+message BookAppointmentResponse {
+  string appointmentId = 1;
+  string status = 2;
+}
