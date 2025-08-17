@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package chat;
+
+option java_package = "com.pm.chatservice.grpc";
+option java_multiple_files = true;
+
+service ChatService {
+  // Client sends a message, server saves it and replies with Ack
+  rpc sendMessage(ChatMessage) returns (ChatAck);
+
+  // Client subscribes to a stream of messages from a room
+  rpc streamMessages(StreamRequest) returns (stream ChatMessage);
+}
+
+// Chat message payload
+message ChatMessage {
+  string roomId = 1;   // Room identifier
+  string from = 2;     // Sender ID / username
+  string text = 3;     // Message text
+  string type = 4;     // Message type (text, image, etc.)
+  string ts = 5;       // Timestamp as string (ISO format)
+}
+
+// Ack response after saving a message
+message ChatAck {
+  string status = 1;   // e.g. "SAVED"
+}
+
+// Request to subscribe to a room
+message StreamRequest {
+  string roomId = 1;
+}
