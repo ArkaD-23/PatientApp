@@ -12,6 +12,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 @Document(collection = "users_details")
@@ -39,6 +40,20 @@ public class User {
 
     @Column(name = "fullname")
     private String fullname;
+
+    private Integer age;
+    private String gender; // MALE, FEMALE, OTHER
+    private Double height; // in cm
+    private Double weight; // in kg
+    private String fitnessGoal; // e.g., "Weight Loss", "Muscle Gain"
+    private String activityLevel; // e.g., "Sedentary", "Active"
+
+    private List<String> preferredWorkouts; // e.g., ["Cardio", "Yoga", "HIIT"]
+    private List<UUID> enrolledPrograms; // references to WorkoutProgram collection
+    private List<UUID> completedWorkouts; // history of completed workouts
+
+    private Integer points = 0;
+    private List<String> achievements; // e.g., "7-day Streak", "100 Workouts"
 
     @CreatedDate
     @Column(name = "creatiion_timestamp")

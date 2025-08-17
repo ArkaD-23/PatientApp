@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package video;
+
+option java_package = "com.pm.videoservice.grpc";
+option java_multiple_files = true;
+
+service VideoService {
+  rpc CreateRoom (CreateRoomRequest) returns (CreateRoomResponse);
+  rpc CloseRoom  (CloseRoomRequest)  returns (CloseRoomResponse);
+}
+
+message CreateRoomRequest {
+  string doctorId = 1;
+  string patientId = 2;
+}
+
+message CreateRoomResponse {
+  string roomId = 1;
+}
+
+message CloseRoomRequest  {
+  string roomId = 1;
+}
+
+message CloseRoomResponse {
+  bool ok = 1;
+}
