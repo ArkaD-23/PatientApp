@@ -6,8 +6,9 @@ import net.devh.boot.grpc.client.inject.GrpcClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.concurrent.CountDownLatch;
 
 @RestController
 @RequestMapping("/v1/chat")
@@ -16,41 +17,62 @@ public class ChatController {
     @GrpcClient("chatService")
     private ChatServiceGrpc.ChatServiceBlockingStub chatServiceStub;
 
-    // ✅ Send message
+    @GrpcClient("chatService")
+    private ChatServiceGrpc.ChatServiceStub chatServiceAsyncStub;
+
+    // ✅ Send a message
     @PostMapping("/send")
     public ResponseEntity<BooleanDto> sendMessage(@RequestBody SendMessageDto dto) {
-        SendMessageRequest req = SendMessageRequest.newBuilder()
-                .setSenderId(dto.getSenderId())
-                .setReceiverId(dto.getReceiverId())
+        ChatMessage req = ChatMessage.newBuilder()
                 .setRoomId(dto.getRoomId())
-                .setContent(dto.getContent())
+                .setFrom(dto.getSenderId())
+                .setText(dto.getContent())
+                .setType(dto.getType())         // assuming type is in SendMessageDto
+                .setTs(dto.getTs())      // assuming timestamp is in SendMessageDto
                 .build();
 
-        SendMessageResponse res = chatServiceStub.sendMessage(req);
+        ChatAck res = chatServiceStub.sendMessage(req);
 
-        return ResponseEntity.ok(new BooleanDto(res.getOk()));
+        // Return true if status == "SAVED"
+        return ResponseEntity.ok(new BooleanDto("SAVED".equals(res.getStatus())));
     }
 
-    // ✅ Get all messages for a room
-    @PostMapping("/messages")
-    public ResponseEntity<MessagesResponseDto> getMessages(@RequestBody GetMessagesDto dto) {
-        GetMessagesRequest req = GetMessagesRequest.newBuilder()
-                .setRoomId(dto.getRoomId())
+    // ✅ Stream messages from a room
+    @GetMapping("/stream/{roomId}")
+    public ResponseEntity<MessagesResponseDto> streamMessages(@PathVariable String roomId) throws InterruptedException {
+        StreamRequest req = StreamRequest.newBuilder()
+                .setRoomId(roomId)
                 .build();
 
-        GetMessagesResponse res = chatServiceStub.getMessages(req);
+        List<MessageDto> messages = new ArrayList<>();
+        CountDownLatch latch = new CountDownLatch(1);
 
-        // Convert gRPC messages → DTO messages
-        List<MessageDto> messages = res.getMessagesList().stream()
-                .map(m -> new MessageDto(
-                        m.getId(),
-                        m.getSenderId(),
-                        m.getReceiverId(),
+        chatServiceAsyncStub.streamMessages(req, new io.grpc.stub.StreamObserver<ChatMessage>() {
+            @Override
+            public void onNext(ChatMessage m) {
+                messages.add(new MessageDto(
+                        null,                  // no explicit id in proto
+                        m.getFrom(),
+                        null,                  // no receiver field in proto
                         m.getRoomId(),
-                        m.getContent(),
-                        m.getTimestamp()
-                ))
-                .collect(Collectors.toList());
+                        m.getText(),
+                        m.getTs()
+                ));
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                latch.countDown();
+            }
+
+            @Override
+            public void onCompleted() {
+                latch.countDown();
+            }
+        });
+
+        // ⚠️ This will wait for the stream to complete (not ideal for long-lived streams)
+        latch.await();
 
         return ResponseEntity.ok(new MessagesResponseDto(messages));
     }
