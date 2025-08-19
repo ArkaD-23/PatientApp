@@ -5,6 +5,7 @@ import { MantineProvider } from "@mantine/core";
 import Navbar from "@/components/Navbar";
 
 import '@mantine/core/styles.css';
+import '@mantine/dates/styles.css';
 
 // const geistSans = Geist({
 //   variable: "--font-geist-sans",

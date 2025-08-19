@@ -33,7 +33,7 @@ export default function Home() {
             visit in just a few clicks.
           </Text>
           <Flex mt="xl" justify="center" gap="md">
-            <Button size="md" color="#1e40af" radius="xl">
+            <Button onClick={() => router.push("/appointment")} size="md" color="#1e40af" radius="xl">
               Book Appointment
             </Button>
             <Button size="md" color="#1e40af" variant="outline" radius="xl">
