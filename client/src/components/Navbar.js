@@ -17,8 +17,8 @@ export default function () {
           </Link>
           <Group spacing="xl">
             <Text component="a" href="#" weight={500} style={{ color: "#1f2937", cursor: "pointer" }}>Home</Text>
-            <Text component="a" href="#features" weight={500} style={{ color: "#1f2937", cursor: "pointer" }}>Features</Text>
-            <Text component="a" href="#about" weight={500} style={{ color: "#1f2937", cursor: "pointer" }}>About</Text>
+            <Text component="a" href="/message" weight={500} style={{ color: "#1f2937", cursor: "pointer" }}>Chat</Text>
+            <Text component="a" href="/videochat" weight={500} style={{ color: "#1f2937", cursor: "pointer" }}>Video</Text>
             <Text component="a" href="#contact" weight={500} style={{ color: "#1f2937", cursor: "pointer" }}>Contact</Text>
             <Button size="sm" color="#1e40af" radius="xl" onClick={() => router.push("/signin")}>Signin</Button>
           </Group>
