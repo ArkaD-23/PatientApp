@@ -11,13 +11,13 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Document
+@Document(collection = "chat_room_details")
 public class ChatRoom {
 
     @Id
     private String id;
 
-    private String chatId;
+    private String roomId;
 
     private String senderId;
 

@@ -1,7 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Paper, TextInput, Button, ScrollArea, Group, Text } from "@mantine/core";
+import {
+  Paper,
+  TextInput,
+  Button,
+  ScrollArea,
+  Group,
+  Text,
+} from "@mantine/core";
 import SockJS from "sockjs-client";
 import { Client } from "@stomp/stompjs";
 
@@ -9,14 +16,16 @@ export default function Chat() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [stompClient, setStompClient] = useState(null);
+  const sid = "68a6c556aefae2b51b20dd7b";
+  const rid = "68a6c58faefae2b51b20dd7c";
 
   useEffect(() => {
     const client = new Client({
-      webSocketFactory: () => new SockJS("http://localhost:8080/ws-chat"),
+      webSocketFactory: () => new SockJS("http://localhost:8082/ws-chat"),
       reconnectDelay: 5000,
     });
 
-    client.onConnect = () => {
+    client.onConnect = async () => {
       console.log("✅ Connected");
 
       client.subscribe("/topic/messages", (msg) => {
@@ -25,10 +34,14 @@ export default function Chat() {
       });
 
       // load history from gateway
-      fetch("http://localhost:8080/v1/chat/history/room1")
-        .then((res) => res.json())
-        .then((data) => setMessages(data.messages.reverse()));
+      const res = await fetch(
+        `http://localhost:8082/v1/chat/messages/${sid}/${rid}`
+      );
+      const data = await res.json();
+      setMessages(data);
     };
+
+    console.log("messages: ", messages);
 
     client.activate();
     setStompClient(client);
@@ -49,11 +62,11 @@ export default function Chat() {
     };
 
     // persist via REST
-    fetch("http://localhost:8080/v1/chat/send", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(chatMessage),
-    });
+    // fetch("http://localhost:8082/v1/chat/send", {
+    //   method: "POST",
+    //   headers: { "Content-Type": "application/json" },
+    //   body: JSON.stringify(chatMessage),
+    // });
 
     // broadcast via WS
     stompClient.publish({
@@ -65,8 +78,25 @@ export default function Chat() {
   };
 
   return (
-    <div style={{ backgroundColor: "#f9fafb", height: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <Paper shadow="md" p="md" style={{ width: 600, height: "100vh", display: "flex", flexDirection: "column" }}>
+    <div
+      style={{
+        backgroundColor: "#f9fafb",
+        height: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <Paper
+        shadow="md"
+        p="md"
+        style={{
+          width: 600,
+          height: "100vh",
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
         {/* Messages */}
         <ScrollArea style={{ flex: 1, marginBottom: "10px" }}>
           <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
@@ -74,9 +104,11 @@ export default function Chat() {
               <div
                 key={i}
                 style={{
-                  alignSelf: msg.senderId === "user" ? "flex-end" : "flex-start",
-                  backgroundColor: msg.senderId === "user" ? "#1e40af" : "#e5e7eb",
-                  color: msg.senderId === "user" ? "white" : "black",
+                  alignSelf:
+                    msg.senderId === sid ? "flex-end" : "flex-start",
+                  backgroundColor:
+                    msg.senderId === sid ? "#1e40af" : "#e5e7eb",
+                  color: msg.senderId === sid ? "white" : "black",
                   padding: "8px 12px",
                   borderRadius: 12,
                   maxWidth: "70%",
@@ -90,7 +122,12 @@ export default function Chat() {
 
         {/* Input Area */}
         <Group>
-          <TextInput placeholder="Type a message..." value={input} onChange={(e) => setInput(e.currentTarget.value)} style={{ flex: 1 }} />
+          <TextInput
+            placeholder="Type a message..."
+            value={input}
+            onChange={(e) => setInput(e.currentTarget.value)}
+            style={{ flex: 1 }}
+          />
           <Button onClick={sendMessage} color="#1e40af">
             Send
           </Button>

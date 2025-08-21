@@ -18,30 +18,31 @@ public class ChatRoomService {
     ) {
         return chatRoomRepository
                 .findBySenderIdAndRecipientId(senderId, recipientId)
-                .map(ChatRoom::getChatId)
+                .map(ChatRoom::getRoomId)
                 .or(() -> {
                     if(createNewRoomIfNotExists) {
-                        var chatId = createChatId(senderId, recipientId);
-                        return Optional.of(chatId);
+                        var roomId = createRoomId(senderId, recipientId);
+                        System.out.println("Roomid: " + roomId);
+                        return Optional.of(roomId);
                     }
 
                     return  Optional.empty();
                 });
     }
 
-    private String createChatId(String senderId, String recipientId) {
+    private String createRoomId(String senderId, String recipientId) {
         var chatId = String.format("%s_%s", senderId, recipientId);
 
         ChatRoom senderRecipient = ChatRoom
                 .builder()
-                .chatId(chatId)
+                .roomId(chatId)
                 .senderId(senderId)
                 .recipientId(recipientId)
                 .build();
 
         ChatRoom recipientSender = ChatRoom
                 .builder()
-                .chatId(chatId)
+                .roomId(chatId)
                 .senderId(recipientId)
                 .recipientId(senderId)
                 .build();

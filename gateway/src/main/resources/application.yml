@@ -6,5 +6,8 @@ grpc:
     authService:
       address: "static://localhost:9091"
       negotiation-type: plaintext
+    chatService:
+      address: "static://localhost:9095"
+      negotiation-type: plaintext
   server:
     port: -1

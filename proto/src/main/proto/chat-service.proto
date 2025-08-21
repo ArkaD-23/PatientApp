@@ -13,7 +13,7 @@ service ChatService {
 
 message ChatMessage {
   string id = 1;
-  string chatId = 2;
+  string roomId = 2;
   string senderId = 3;
   string recipientId = 4;
   string content = 5;

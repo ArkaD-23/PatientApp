@@ -15,8 +15,7 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
 import java.util.List;
@@ -24,6 +23,8 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Controller
+@RequestMapping("/v1/chat")
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 @RequiredArgsConstructor
 public class ChatController {
 
@@ -118,18 +119,21 @@ public class ChatController {
 
         // fetch response
         GetChatMessagesResponse res = chatServiceStub.getMessages(req);
+        System.out.println("Response in chatcontroller: " + res);
 
         // map gRPC messages to DTOs
         List<ChatMessage> list = res.getMessagesList().stream()
                 .map(m -> new ChatMessage(
                         m.getId(),
-                        m.getChatId(),
+                        m.getRoomId(),
                         m.getSenderId(),
                         m.getRecipientId(),
                         m.getContent(),
                         new Date(m.getTimestamp())
                 ))
                 .collect(Collectors.toList());
+
+        System.out.println("List response: " + list);
 
         return ResponseEntity.ok(list);
     }

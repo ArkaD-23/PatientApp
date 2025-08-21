@@ -31,7 +31,7 @@ public class ChatGrpcService extends ChatServiceGrpc.ChatServiceImplBase {
             SaveChatMessageResponse response = SaveChatMessageResponse.newBuilder()
                     .setMessage(com.pm.chatservice.grpc.ChatMessage.newBuilder()
                             .setId(saved.getId().toString())
-                            .setChatId(saved.getChatId())
+                            .setRoomId(saved.getRoomId())
                             .setSenderId(saved.getSenderId())
                             .setRecipientId(saved.getRecipientId())
                             .setContent(saved.getContent())
@@ -56,11 +56,13 @@ public class ChatGrpcService extends ChatServiceGrpc.ChatServiceImplBase {
                     request.getRecipientId()
             );
 
+            System.out.println("Response in chatgrpcservice: " + messages);
+
             GetChatMessagesResponse response = GetChatMessagesResponse.newBuilder()
                     .addAllMessages(messages.stream().map(m ->
                             com.pm.chatservice.grpc.ChatMessage.newBuilder()
                                     .setId(m.getId().toString())
-                                    .setChatId(m.getChatId())
+                                    .setRoomId(m.getRoomId())
                                     .setSenderId(m.getSenderId())
                                     .setRecipientId(m.getRecipientId())
                                     .setContent(m.getContent())

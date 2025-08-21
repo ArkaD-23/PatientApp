@@ -12,13 +12,13 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Document
+@Document(collection = "chat_details")
 public class ChatMessage {
 
     @Id
     private String id;
 
-    private String chatId;
+    private String roomId;
 
     private String senderId;
 
