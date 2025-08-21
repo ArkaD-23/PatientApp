@@ -7,10 +7,12 @@ import com.pm.user_service.exception.InvalidTokenException;
 import com.pm.user_service.exception.UserNotFoundException;
 import com.pm.user_service.model.User;
 import com.pm.user_service.repository.UserRepository;
+import com.pm.user_service.util.Status;
 import jakarta.validation.Valid;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -93,4 +95,30 @@ public class UserService {
         userRepository.delete(user);
         return new BooleanDto(true);
     }
+
+    public BooleanDto saveUser(UUID userId) throws UserNotFoundException {
+
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User not found."));
+        user.setStatus(Status.ONLINE);
+        userRepository.save(user);
+        return new BooleanDto(true);
+    }
+
+    public BooleanDto disconnect(UUID userId) {
+        var storedUser = userRepository.findById(userId).orElse(null);
+        if (storedUser != null) {
+            storedUser.setStatus(Status.OFFLINE);
+            userRepository.save(storedUser);
+            return new BooleanDto(true);
+        }
+        return new BooleanDto(false);
+    }
+
+    public List<ProfileResponseDto> findConnectedUsers() {
+        return userRepository.findAllByStatus(Status.ONLINE)
+                .stream()
+                .map(user -> new ProfileResponseDto(user.getId(), user.getEmail(), user.getFullname(), user.getRole()))
+                .toList();
+    }
+
 }

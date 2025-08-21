@@ -21,9 +21,6 @@ public class ProfileResponseDto {
     @JsonProperty("fullname")
     private String fullname;
 
-    @JsonProperty("username")
-    private String username;
-
     @JsonProperty("email")
     private String email;
 
@@ -33,7 +30,6 @@ public class ProfileResponseDto {
     public ProfileResponseDto(User user) {
         this.id = user.getId();
         this.fullname = user.getFullname();
-        this.username = user.getUsername();
         this.email = user.getEmail();
         this.role = user.getRole();
     }

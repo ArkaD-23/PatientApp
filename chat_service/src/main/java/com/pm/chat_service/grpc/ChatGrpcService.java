@@ -1,58 +1,99 @@
 package com.pm.chat_service.grpc;
 
-import com.pm.chat_service.model.ChatMessageEntity;
-import com.pm.chat_service.service.ChatMessageService;
-import com.pm.chatservice.grpc.ChatAck;
-import com.pm.chatservice.grpc.ChatMessage;
-import com.pm.chatservice.grpc.ChatServiceGrpc;
-import com.pm.chatservice.grpc.StreamRequest;
+import com.pm.chat_service.chat.ChatMessageService;
+import com.pm.chat_service.chatroom.ChatRoomService;
+import com.pm.chatservice.grpc.*;
 import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
 import net.devh.boot.grpc.server.service.GrpcService;
+import com.pm.chat_service.chat.ChatMessage;
 
-import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collectors;
 
 @GrpcService
 @RequiredArgsConstructor
 public class ChatGrpcService extends ChatServiceGrpc.ChatServiceImplBase {
 
-    private final ChatMessageService chatService;
-
-    private final List<StreamObserver<ChatMessage>> subscribers = new CopyOnWriteArrayList<>();
+    private final ChatRoomService chatRoomService;
+    private final ChatMessageService chatMessageService;
 
     @Override
-    public void sendMessage(ChatMessage request, StreamObserver<ChatAck> responseObserver) {
-        // Save to DB
-        ChatMessageEntity saved = chatService.save(
-                request.getRoomId(),
-                request.getFrom(),
-                request.getText(),
-                request.getType()
-        );
+    public void saveMessage(SaveChatMessageRequest request,
+                            StreamObserver<SaveChatMessageResponse> responseObserver) {
+        try {
+            ChatMessage message = new ChatMessage();
+            message.setSenderId(request.getSenderId());
+            message.setRecipientId(request.getRecipientId());
+            message.setContent(request.getContent());
 
-        // Broadcast to gRPC subscribers
-        ChatMessage protoMsg = ChatMessage.newBuilder()
-                .setRoomId(saved.getRoomId())
-                .setFrom(saved.getSender())
-                .setText(saved.getText())
-                .setType(saved.getType())
-                .setTs(saved.getTs().toString())
-                .build();
+            ChatMessage saved = chatMessageService.save(message);
 
-        for (StreamObserver<ChatMessage> sub : subscribers) {
-            sub.onNext(protoMsg);
+            SaveChatMessageResponse response = SaveChatMessageResponse.newBuilder()
+                    .setMessage(com.pm.chatservice.grpc.ChatMessage.newBuilder()
+                            .setId(saved.getId().toString())
+                            .setChatId(saved.getChatId())
+                            .setSenderId(saved.getSenderId())
+                            .setRecipientId(saved.getRecipientId())
+                            .setContent(saved.getContent())
+                            .setTimestamp(saved.getTimestamp().getTime())
+                            .build()
+                    )
+                    .build();
+
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+        } catch (Exception e) {
+            responseObserver.onError(e);
         }
-
-        // Ack
-        ChatAck ack = ChatAck.newBuilder().setStatus("SAVED").build();
-        responseObserver.onNext(ack);
-        responseObserver.onCompleted();
     }
 
     @Override
-    public void streamMessages(StreamRequest request, StreamObserver<ChatMessage> responseObserver) {
-        subscribers.add(responseObserver);
+    public void getMessages(GetChatMessagesRequest request,
+                            StreamObserver<GetChatMessagesResponse> responseObserver) {
+        try {
+            var messages = chatMessageService.findChatMessages(
+                    request.getSenderId(),
+                    request.getRecipientId()
+            );
+
+            GetChatMessagesResponse response = GetChatMessagesResponse.newBuilder()
+                    .addAllMessages(messages.stream().map(m ->
+                            com.pm.chatservice.grpc.ChatMessage.newBuilder()
+                                    .setId(m.getId().toString())
+                                    .setChatId(m.getChatId())
+                                    .setSenderId(m.getSenderId())
+                                    .setRecipientId(m.getRecipientId())
+                                    .setContent(m.getContent())
+                                    .setTimestamp(m.getTimestamp().getTime())
+                                    .build()
+                    ).collect(Collectors.toList()))
+                    .build();
+
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+        } catch (Exception e) {
+            responseObserver.onError(e);
+        }
+    }
+
+    @Override
+    public void getChatRoomId(ChatRoomRequest request, StreamObserver<ChatRoomResponse> responseObserver) {
+        try {
+            var chatIdOpt = chatRoomService.getChatRoomId(
+                    request.getSenderId(),
+                    request.getRecipientId(),
+                    request.getCreateIfNotExists()
+            );
+
+            ChatRoomResponse response = ChatRoomResponse.newBuilder()
+                    .setChatId(chatIdOpt.orElse(""))
+                    .build();
+
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+        } catch (Exception e) {
+            responseObserver.onError(e);
+        }
     }
 }
+

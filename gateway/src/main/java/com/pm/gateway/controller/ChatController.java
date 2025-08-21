@@ -1,79 +1,136 @@
 package com.pm.gateway.controller;
 
-import com.pm.gateway.dto.*;
 import com.pm.chatservice.grpc.*;
+import com.pm.gateway.dto.BooleanDto;
+import com.pm.gateway.dto.ChatMessage;
+import com.pm.gateway.dto.ProfileDto;
+import com.pm.gateway.ws.chat.ChatNotification;
+import com.pm.userservice.grpc.*;
+import lombok.RequiredArgsConstructor;
 import net.devh.boot.grpc.client.inject.GrpcClient;
+import com.google.protobuf.Empty;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 
-import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
-@RestController
-@RequestMapping("/v1/chat")
+@Controller
+@RequiredArgsConstructor
 public class ChatController {
+
+    private final SimpMessagingTemplate messagingTemplate;
 
     @GrpcClient("chatService")
     private ChatServiceGrpc.ChatServiceBlockingStub chatServiceStub;
 
-    @GrpcClient("chatService")
-    private ChatServiceGrpc.ChatServiceStub chatServiceAsyncStub;
+    @GrpcClient("userService")
+    private UserServiceGrpc.UserServiceBlockingStub userServiceStub;
 
-    // ✅ Send a message
-    @PostMapping("/send")
-    public ResponseEntity<BooleanDto> sendMessage(@RequestBody SendMessageDto dto) {
-        ChatMessage req = ChatMessage.newBuilder()
-                .setRoomId(dto.getRoomId())
-                .setFrom(dto.getSenderId())
-                .setText(dto.getContent())
-                .setType(dto.getType())         // assuming type is in SendMessageDto
-                .setTs(dto.getTs())      // assuming timestamp is in SendMessageDto
+    @MessageMapping("/user.addUser")
+    @SendTo("/user/public")
+    public BooleanDto add(@Payload UUID userId) {
+
+        UserIdRequest req = UserIdRequest.newBuilder()
+                .setId(userId.toString())
                 .build();
 
-        ChatAck res = chatServiceStub.sendMessage(req);
+        BooleanResponse res = userServiceStub.addUser(req);
 
-        // Return true if status == "SAVED"
-        return ResponseEntity.ok(new BooleanDto("SAVED".equals(res.getStatus())));
+        return new BooleanDto(res.getStatus());
     }
 
-    // ✅ Stream messages from a room
-    @GetMapping("/stream/{roomId}")
-    public ResponseEntity<MessagesResponseDto> streamMessages(@PathVariable String roomId) throws InterruptedException {
-        StreamRequest req = StreamRequest.newBuilder()
-                .setRoomId(roomId)
+    @MessageMapping("/user.disconnectUser")
+    @SendTo("/user/public")
+    public BooleanDto disconnect(@Payload UUID userId) {
+
+        UserIdRequest req = UserIdRequest.newBuilder()
+                .setId(userId.toString())
                 .build();
 
-        List<MessageDto> messages = new ArrayList<>();
-        CountDownLatch latch = new CountDownLatch(1);
+        BooleanResponse res = userServiceStub.disconnectUser(req);
 
-        chatServiceAsyncStub.streamMessages(req, new io.grpc.stub.StreamObserver<ChatMessage>() {
-            @Override
-            public void onNext(ChatMessage m) {
-                messages.add(new MessageDto(
-                        null,                  // no explicit id in proto
-                        m.getFrom(),
-                        null,                  // no receiver field in proto
-                        m.getRoomId(),
-                        m.getText(),
-                        m.getTs()
-                ));
-            }
+        return new BooleanDto(res.getStatus());
+    }
 
-            @Override
-            public void onError(Throwable t) {
-                latch.countDown();
-            }
+    @GetMapping("/users")
+    public ResponseEntity<List<ProfileDto>> findConnectedUsers() {
 
-            @Override
-            public void onCompleted() {
-                latch.countDown();
-            }
-        });
+        ProfileListResponse res = userServiceStub.getConnectedUsers(Empty.getDefaultInstance());
 
-        // ⚠️ This will wait for the stream to complete (not ideal for long-lived streams)
-        latch.await();
+        List<ProfileDto> list = res.getProfilesList().stream()
+                .map(profile -> new ProfileDto(
+                        profile.getId(),
+                        profile.getEmail(),
+                        profile.getFullname(),
+                        profile.getRole(),
+                        profile.getSuccess(),
+                        profile.getMessage()
+                ))
+                .toList();
 
-        return ResponseEntity.ok(new MessagesResponseDto(messages));
+        return ResponseEntity.ok(list);
+    }
+
+    @MessageMapping("/chat")
+    public void processMessage(@Payload ChatMessage chatMessage) {
+        // build gRPC request
+        SaveChatMessageRequest req = SaveChatMessageRequest.newBuilder()
+                .setSenderId(chatMessage.getSenderId())
+                .setRecipientId(chatMessage.getRecipientId())
+                .setContent(chatMessage.getContent())
+                .build();
+
+        SaveChatMessageResponse savedMsg = chatServiceStub.saveMessage(req);
+
+        messagingTemplate.convertAndSendToUser(
+                savedMsg.getMessage().getRecipientId(), "/queue/messages",
+                new ChatNotification(
+                        savedMsg.getMessage().getId(),
+                        savedMsg.getMessage().getSenderId(),
+                        savedMsg.getMessage().getRecipientId(),
+                        savedMsg.getMessage().getContent()
+                )
+        );
+    }
+
+    /**
+     * REST endpoint to fetch chat history
+     */
+    @GetMapping("/messages/{senderId}/{recipientId}")
+    public ResponseEntity<List<ChatMessage>> findChatMessages(
+            @PathVariable String senderId,
+            @PathVariable String recipientId) {
+
+        // build request
+        GetChatMessagesRequest req = GetChatMessagesRequest.newBuilder()
+                        .setSenderId(senderId)
+                        .setRecipientId(recipientId)
+                        .build();
+
+        // fetch response
+        GetChatMessagesResponse res = chatServiceStub.getMessages(req);
+
+        // map gRPC messages to DTOs
+        List<ChatMessage> list = res.getMessagesList().stream()
+                .map(m -> new ChatMessage(
+                        m.getId(),
+                        m.getChatId(),
+                        m.getSenderId(),
+                        m.getRecipientId(),
+                        m.getContent(),
+                        new Date(m.getTimestamp())
+                ))
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(list);
     }
 }

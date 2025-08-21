@@ -6,28 +6,45 @@ option java_package = "com.pm.chatservice.grpc";
 option java_multiple_files = true;
 
 service ChatService {
-  // Client sends a message, server saves it and replies with Ack
-  rpc sendMessage(ChatMessage) returns (ChatAck);
-
-  // Client subscribes to a stream of messages from a room
-  rpc streamMessages(StreamRequest) returns (stream ChatMessage);
+  rpc SaveMessage(SaveChatMessageRequest) returns (SaveChatMessageResponse);
+  rpc GetMessages(GetChatMessagesRequest) returns (GetChatMessagesResponse);
+  rpc GetChatRoomId(ChatRoomRequest) returns (ChatRoomResponse);
 }
 
-// Chat message payload
 message ChatMessage {
-  string roomId = 1;   // Room identifier
-  string from = 2;     // Sender ID / username
-  string text = 3;     // Message text
-  string type = 4;     // Message type (text, image, etc.)
-  string ts = 5;       // Timestamp as string (ISO format)
+  string id = 1;
+  string chatId = 2;
+  string senderId = 3;
+  string recipientId = 4;
+  string content = 5;
+  int64 timestamp = 6;
 }
 
-// Ack response after saving a message
-message ChatAck {
-  string status = 1;   // e.g. "SAVED"
+message SaveChatMessageRequest {
+  string senderId = 1;
+  string recipientId = 2;
+  string content = 3;
 }
 
-// Request to subscribe to a room
-message StreamRequest {
-  string roomId = 1;
+message SaveChatMessageResponse {
+  ChatMessage message = 1;
+}
+
+message GetChatMessagesRequest {
+  string senderId = 1;
+  string recipientId = 2;
+}
+
+message GetChatMessagesResponse {
+  repeated ChatMessage messages = 1;
+}
+
+message ChatRoomRequest {
+  string senderId = 1;
+  string recipientId = 2;
+  bool createIfNotExists = 3;
+}
+
+message ChatRoomResponse {
+  string chatId = 1;
 }

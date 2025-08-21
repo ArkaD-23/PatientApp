@@ -1,48 +1,72 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Paper, TextInput, Button, ScrollArea, Group, Text } from "@mantine/core";
+import SockJS from "sockjs-client";
+import { Client } from "@stomp/stompjs";
 
 export default function Chat() {
-  const [messages, setMessages] = useState([
-    { from: "doctor", text: "Hello! How can I help you today?" },
-    { from: "user", text: "I want to book an appointment for a checkup." },
-  ]);
+  const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
+  const [stompClient, setStompClient] = useState(null);
+
+  useEffect(() => {
+    const client = new Client({
+      webSocketFactory: () => new SockJS("http://localhost:8080/ws-chat"),
+      reconnectDelay: 5000,
+    });
+
+    client.onConnect = () => {
+      console.log("✅ Connected");
+
+      client.subscribe("/topic/messages", (msg) => {
+        const body = JSON.parse(msg.body);
+        setMessages((prev) => [...prev, body]);
+      });
+
+      // load history from gateway
+      fetch("http://localhost:8080/v1/chat/history/room1")
+        .then((res) => res.json())
+        .then((data) => setMessages(data.messages.reverse()));
+    };
+
+    client.activate();
+    setStompClient(client);
+
+    return () => client.deactivate();
+  }, []);
 
   const sendMessage = () => {
-    if (!input.trim()) return;
-    setMessages([...messages, { from: "user", text: input }]);
+    if (!input.trim() || !stompClient) return;
+
+    const chatMessage = {
+      id: crypto.randomUUID(),
+      roomId: "room1",
+      senderId: "user",
+      content: input,
+      type: "TEXT",
+      ts: Date.now(),
+    };
+
+    // persist via REST
+    fetch("http://localhost:8080/v1/chat/send", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(chatMessage),
+    });
+
+    // broadcast via WS
+    stompClient.publish({
+      destination: "/app/chat.send",
+      body: JSON.stringify(chatMessage),
+    });
+
     setInput("");
-    // Simulate doctor reply
-    setTimeout(() => {
-      setMessages((prev) => [
-        ...prev,
-        { from: "doctor", text: "Sure, please pick a date and time." },
-      ]);
-    }, 1000);
   };
 
   return (
-    <div
-      style={{
-        backgroundColor: "#f9fafb",
-        height: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-      }}
-    >
-      <Paper
-        shadow="md"
-        p="md"
-        style={{
-          width: 600,
-          height: "100vh",
-          display: "flex",
-          flexDirection: "column",
-        }}
-      >
+    <div style={{ backgroundColor: "#f9fafb", height: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <Paper shadow="md" p="md" style={{ width: 600, height: "100vh", display: "flex", flexDirection: "column" }}>
         {/* Messages */}
         <ScrollArea style={{ flex: 1, marginBottom: "10px" }}>
           <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
@@ -50,15 +74,15 @@ export default function Chat() {
               <div
                 key={i}
                 style={{
-                  alignSelf: msg.from === "user" ? "flex-end" : "flex-start",
-                  backgroundColor: msg.from === "user" ? "#1e40af" : "#e5e7eb",
-                  color: msg.from === "user" ? "white" : "black",
+                  alignSelf: msg.senderId === "user" ? "flex-end" : "flex-start",
+                  backgroundColor: msg.senderId === "user" ? "#1e40af" : "#e5e7eb",
+                  color: msg.senderId === "user" ? "white" : "black",
                   padding: "8px 12px",
                   borderRadius: 12,
                   maxWidth: "70%",
                 }}
               >
-                <Text size="sm">{msg.text}</Text>
+                <Text size="sm">{msg.content}</Text>
               </div>
             ))}
           </div>
@@ -66,12 +90,7 @@ export default function Chat() {
 
         {/* Input Area */}
         <Group>
-          <TextInput
-            placeholder="Type a message..."
-            value={input}
-            onChange={(e) => setInput(e.currentTarget.value)}
-            style={{ flex: 1 }}
-          />
+          <TextInput placeholder="Type a message..." value={input} onChange={(e) => setInput(e.currentTarget.value)} style={{ flex: 1 }} />
           <Button onClick={sendMessage} color="#1e40af">
             Send
           </Button>

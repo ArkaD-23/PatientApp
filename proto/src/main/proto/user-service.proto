@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package user;
 
+import "google/protobuf/empty.proto";
+
 option java_package = "com.pm.userservice.grpc";
 option java_multiple_files = true;
 
@@ -11,6 +13,13 @@ service UserService {
   rpc Update(UpdateRequest) returns (ProfileResponse);
   rpc GetUser(GetUserRequest) returns (ProfileResponse);
   rpc DeleteUser(DeleteUserRequest) returns (BooleanResponse);
+  rpc AddUser(UserIdRequest) returns (BooleanResponse);
+  rpc DisconnectUser(UserIdRequest) returns (BooleanResponse);
+  rpc GetConnectedUsers(google.protobuf.Empty) returns (ProfileListResponse);
+}
+
+message UserIdRequest {
+  string id =1;
 }
 
 message CreateUserRequest {
@@ -54,4 +63,8 @@ message ProfileResponse {
   string role = 4;
   bool success = 5;
   string message = 6;
+}
+
+message ProfileListResponse {
+  repeated ProfileResponse profiles = 1;
 }

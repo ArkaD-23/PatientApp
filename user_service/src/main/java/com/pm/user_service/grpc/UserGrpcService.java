@@ -1,5 +1,6 @@
 package com.pm.user_service.grpc;
 
+import com.google.protobuf.Empty;
 import com.pm.user_service.dto.BooleanDto;
 import com.pm.user_service.dto.ProfileDto;
 import com.pm.user_service.dto.ProfileResponseDto;
@@ -11,6 +12,7 @@ import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import net.devh.boot.grpc.server.service.GrpcService;
 
+import java.util.List;
 import java.util.UUID;
 
 @GrpcService
@@ -129,4 +131,57 @@ public class UserGrpcService extends UserServiceGrpc.UserServiceImplBase {
             responseObserver.onError(Status.INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
         }
     }
+
+    @Override
+    public void addUser(UserIdRequest request, StreamObserver<BooleanResponse> responseObserver) {
+        try {
+
+            BooleanDto result = userService.saveUser(UUID.fromString(request.getId()));
+
+            BooleanResponse response = BooleanResponse.newBuilder()
+                    .setStatus(result.getStatus())
+                    .build();
+
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+        } catch (UserNotFoundException e) {
+            responseObserver.onError(Status.NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
+        }
+    }
+
+    @Override
+    public void disconnectUser(UserIdRequest request, StreamObserver<BooleanResponse> responseObserver) {
+
+        BooleanDto result = userService.disconnect(UUID.fromString(request.getId()));
+
+        BooleanResponse response = BooleanResponse.newBuilder()
+                .setStatus(result.getStatus())
+                .build();
+
+        responseObserver.onNext(response);
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void getConnectedUsers(Empty request, StreamObserver<ProfileListResponse> responseObserver) {
+
+        List<ProfileResponseDto> result = userService.findConnectedUsers();
+        ProfileListResponse response = ProfileListResponse.newBuilder()
+                .addAllProfiles(
+                        result.stream()
+                                .map(dto -> ProfileResponse.newBuilder()
+                                        .setId(dto.getId().toString())
+                                        .setFullname(dto.getFullname())
+                                        .setEmail(dto.getEmail())
+                                        .setRole(dto.getRole())
+                                        .build()
+                                )
+                                .toList()
+                )
+                .build();
+
+        responseObserver.onNext(response);
+        responseObserver.onCompleted();
+    }
+
 }
