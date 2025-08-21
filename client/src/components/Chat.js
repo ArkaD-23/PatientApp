@@ -26,20 +26,24 @@ export default function Chat() {
     });
 
     client.onConnect = async () => {
-      console.log("✅ Connected");
 
-      client.subscribe("/topic/messages", (msg) => {
-        const body = JSON.parse(msg.body);
-        setMessages((prev) => [...prev, body]);
-      });
+      console.log("Connected to WebSocket");
 
-      // load history from gateway
+      // 1. load history first
       const res = await fetch(
         `http://localhost:8082/v1/chat/messages/${sid}/${rid}`
       );
       const data = await res.json();
       setMessages(data);
+    
+      // 2. then subscribe
+      client.subscribe(`/topic/messages/${sid}`, (msg) => {
+        console.log("📩 Incoming raw:", msg.body);
+        const body = JSON.parse(msg.body);
+        setMessages((prev) => [...prev, body]);
+      });
     };
+    
 
     console.log("messages: ", messages);
 
@@ -53,26 +57,20 @@ export default function Chat() {
     if (!input.trim() || !stompClient) return;
 
     const chatMessage = {
-      id: crypto.randomUUID(),
-      roomId: "room1",
-      senderId: "user",
+      roomId: "room68a6c556aefae2b51b20dd7b_68a6c58faefae2b51b20dd7c",
+      senderId: sid,
+      recipientId: rid,
       content: input,
       type: "TEXT",
       ts: Date.now(),
     };
-
-    // persist via REST
-    // fetch("http://localhost:8082/v1/chat/send", {
-    //   method: "POST",
-    //   headers: { "Content-Type": "application/json" },
-    //   body: JSON.stringify(chatMessage),
-    // });
 
     // broadcast via WS
     stompClient.publish({
       destination: "/app/chat.send",
       body: JSON.stringify(chatMessage),
     });
+    console.log("📤 Sent:", chatMessage);
 
     setInput("");
   };

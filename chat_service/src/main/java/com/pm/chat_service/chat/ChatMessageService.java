@@ -15,10 +15,10 @@ public class ChatMessageService {
     private final ChatRoomService chatRoomService;
 
     public ChatMessage save(ChatMessage chatMessage) {
-        var chatId = chatRoomService
+        var roomId = chatRoomService
                 .getChatRoomId(chatMessage.getSenderId(), chatMessage.getRecipientId(), true)
                 .orElseThrow();
-        chatMessage.setRoomId(chatId);
+        chatMessage.setRoomId(roomId);
         repository.save(chatMessage);
         return chatMessage;
     }

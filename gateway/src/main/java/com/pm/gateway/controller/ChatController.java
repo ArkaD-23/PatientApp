@@ -81,8 +81,9 @@ public class ChatController {
         return ResponseEntity.ok(list);
     }
 
-    @MessageMapping("/chat")
+    @MessageMapping("/chat.send")
     public void processMessage(@Payload ChatMessage chatMessage) {
+
         // build gRPC request
         SaveChatMessageRequest req = SaveChatMessageRequest.newBuilder()
                 .setSenderId(chatMessage.getSenderId())
@@ -92,16 +93,23 @@ public class ChatController {
 
         SaveChatMessageResponse savedMsg = chatServiceStub.saveMessage(req);
 
-        messagingTemplate.convertAndSendToUser(
-                savedMsg.getMessage().getRecipientId(), "/queue/messages",
-                new ChatNotification(
-                        savedMsg.getMessage().getId(),
-                        savedMsg.getMessage().getSenderId(),
-                        savedMsg.getMessage().getRecipientId(),
-                        savedMsg.getMessage().getContent()
-                )
+        ChatNotification notification = new ChatNotification(
+                savedMsg.getMessage().getId(),
+                savedMsg.getMessage().getSenderId(),
+                savedMsg.getMessage().getRecipientId(),
+                savedMsg.getMessage().getContent()
         );
+
+        // send to recipient-specific topic
+        String recipientDest = "/topic/messages/" + savedMsg.getMessage().getRecipientId();
+        messagingTemplate.convertAndSend(recipientDest, notification);
+
+        // also send to sender's topic
+        String senderDest = "/topic/messages/" + savedMsg.getMessage().getSenderId();
+        messagingTemplate.convertAndSend(senderDest, notification);
     }
+
+
 
     /**
      * REST endpoint to fetch chat history
@@ -119,7 +127,6 @@ public class ChatController {
 
         // fetch response
         GetChatMessagesResponse res = chatServiceStub.getMessages(req);
-        System.out.println("Response in chatcontroller: " + res);
 
         // map gRPC messages to DTOs
         List<ChatMessage> list = res.getMessagesList().stream()
@@ -132,8 +139,6 @@ public class ChatController {
                         new Date(m.getTimestamp())
                 ))
                 .collect(Collectors.toList());
-
-        System.out.println("List response: " + list);
 
         return ResponseEntity.ok(list);
     }
