@@ -1,46 +1,39 @@
 package com.pm.gateway.controller;
 
-import com.pm.gateway.dto.BooleanDto;
-import com.pm.gateway.dto.CloseRoomDto;
-import com.pm.gateway.dto.CreateRoomRequestDto;
-import com.pm.gateway.dto.CreateRoomResponseDto;
-import com.pm.videoservice.grpc.*;
-import net.devh.boot.grpc.client.inject.GrpcClient;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import com.pm.gateway.dto.WebRTCMessage;
+import lombok.RequiredArgsConstructor;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.stereotype.Controller;
 
-@RestController
-@RequestMapping("/v1/rooms")
+@Controller
+@RequiredArgsConstructor
 public class VideoController {
 
-    @GrpcClient("videoService")
-    private VideoServiceGrpc.VideoServiceBlockingStub roomServiceStub;
+    private final SimpMessagingTemplate messagingTemplate;
 
-    @PostMapping("/create")
-    public ResponseEntity<CreateRoomResponseDto> createRoom(@RequestBody CreateRoomRequestDto dto) {
-
-        CreateRoomRequest req = CreateRoomRequest.newBuilder()
-                .setDoctorId(dto.getDoctorId())
-                .setPatientId(dto.getPatientId())
-                .build();
-
-        CreateRoomResponse res = roomServiceStub.createRoom(req);
-
-        return ResponseEntity.ok(
-                new CreateRoomResponseDto(
-                        res.getRoomId()
-                )
+    @MessageMapping("/webrtc.offer")
+    public void handleOffer(WebRTCMessage message) {
+        System.out.println("📩 OFFER received: " + message.getType());
+        messagingTemplate.convertAndSend(
+                "/topic/webrtc." + message.getRecipientId(),
+                message
         );
     }
 
-    @DeleteMapping("/close")
-    public ResponseEntity<BooleanDto> closeRoom(@RequestBody CloseRoomDto dto) {
-        CloseRoomRequest req = CloseRoomRequest.newBuilder()
-                .setRoomId(dto.getRoomId())
-                .build();
+    @MessageMapping("/webrtc.answer")
+    public void handleAnswer(WebRTCMessage message) {
+        messagingTemplate.convertAndSend(
+                "/topic/webrtc." + message.getRecipientId(),
+                message
+        );
+    }
 
-        CloseRoomResponse res = roomServiceStub.closeRoom(req);
-
-        return ResponseEntity.ok(new BooleanDto(res.getOk()));
+    @MessageMapping("/webrtc.ice")
+    public void handleIceCandidate(WebRTCMessage message) {
+        messagingTemplate.convertAndSend(
+                "/topic/webrtc." + message.getRecipientId(),
+                message
+        );
     }
 }

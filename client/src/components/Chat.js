@@ -12,12 +12,12 @@ import {
 import SockJS from "sockjs-client";
 import { Client } from "@stomp/stompjs";
 
-export default function Chat() {
+export default function Chat({ senderId, recipientId }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [stompClient, setStompClient] = useState(null);
-  const sid = "68a6c556aefae2b51b20dd7b";
-  const rid = "68a6c58faefae2b51b20dd7c";
+  //const senderId = "68a6c556aefae2b51b20dd7b";
+  //const recipientId = "68a6c58faefae2b51b20dd7c";
 
   useEffect(() => {
     const client = new Client({
@@ -31,13 +31,13 @@ export default function Chat() {
 
       // 1. load history first
       const res = await fetch(
-        `http://localhost:8082/v1/chat/messages/${sid}/${rid}`
+        `http://localhost:8082/v1/chat/messages/${senderId}/${recipientId}`
       );
       const data = await res.json();
       setMessages(data);
     
       // 2. then subscribe
-      client.subscribe(`/topic/messages/${sid}`, (msg) => {
+      client.subscribe(`/topic/messages/${senderId}`, (msg) => {
         console.log("📩 Incoming raw:", msg.body);
         const body = JSON.parse(msg.body);
         setMessages((prev) => [...prev, body]);
@@ -58,8 +58,8 @@ export default function Chat() {
 
     const chatMessage = {
       roomId: "room68a6c556aefae2b51b20dd7b_68a6c58faefae2b51b20dd7c",
-      senderId: sid,
-      recipientId: rid,
+      senderId: senderId,
+      recipientId: recipientId,
       content: input,
       type: "TEXT",
       ts: Date.now(),
@@ -103,10 +103,10 @@ export default function Chat() {
                 key={i}
                 style={{
                   alignSelf:
-                    msg.senderId === sid ? "flex-end" : "flex-start",
+                    msg.senderId === senderId ? "flex-end" : "flex-start",
                   backgroundColor:
-                    msg.senderId === sid ? "#1e40af" : "#e5e7eb",
-                  color: msg.senderId === sid ? "white" : "black",
+                    msg.senderId === senderId ? "#1e40af" : "#e5e7eb",
+                  color: msg.senderId === senderId ? "white" : "black",
                   padding: "8px 12px",
                   borderRadius: 12,
                   maxWidth: "70%",

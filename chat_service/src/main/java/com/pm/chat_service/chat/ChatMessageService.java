@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -27,8 +28,23 @@ public class ChatMessageService {
 
         var roomId = chatRoomService.getChatRoomId(senderId, recipientId, false);
 
-        System.out.println("roomId: " + roomId);
+        String reversedRoomId = roomId
+                .map(id -> {
+                    String[] parts = id.split("_");
+                    return (parts.length == 2) ? parts[1] + "_" + parts[0] : id;
+                })
+                .orElse(null);
 
-        return roomId.map(repository::findByRoomId).orElse(new ArrayList<>());
+        List<ChatMessage> messages = new ArrayList<>();
+
+        roomId.ifPresent(id -> messages.addAll(repository.findByRoomId(id)));
+
+        if (reversedRoomId != null) {
+            messages.addAll(repository.findByRoomId(reversedRoomId));
+        }
+
+        messages.sort(Comparator.comparing(ChatMessage::getTimestamp));
+
+        return messages;
     }
 }
