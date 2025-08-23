@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Paper,
   Title,
@@ -10,107 +10,170 @@ import {
   Stack,
   Group,
   Container,
+  Notification,
 } from "@mantine/core";
 import { DatePicker } from "@mantine/dates";
+import { useSelector } from "react-redux";
 
 export default function AppointmentBooking() {
-  const [doctor, setDoctor] = useState("");
+  const [doctorId, setDoctorId] = useState("");
   const [date, setDate] = useState(null);
-  const [time, setTime] = useState("");
+  const [timeSlot, setTimeSlot] = useState("");
+  const [success, setSuccess] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleBooking = () => {
-    if (!doctor || !date || !time) {
-      alert("Please select all fields before booking.");
+  const patientId = useSelector((state) => state.user.data?.id);
+
+  const handleBooking = async () => {
+    setLoading(true);
+    if (!doctorId || !date || !timeSlot) {
+      setError("Please select all fields before booking.");
+      setLoading(false);
       return;
     }
-    alert(
-      `✅ Appointment booked with ${doctor} on ${date.toDateString()} at ${time}`
-    );
+    const res = await fetch("http://localhost:8082/v1/appointments/book", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        patientId,
+        doctorId,
+        timeSlot,
+        date,
+      }),
+    });
+    console.log("Booking response:", res);
+    if (res.ok) {
+      setSuccess(`Appointment booked on ${date} at ${timeSlot}`);
+      setLoading(false);
+      return;
+    }
+    const errorData = await res.json();
+    setError(errorData.message || "Failed to book appointment.");
+    setLoading(false);
+    return;
   };
 
   return (
-    <Container
-      size="sm"
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-      }}
-    >
-      <Paper
-        shadow="md"
-        radius="lg"
-        p="xl"
-        withBorder
-        style={{ width: "100%" }}
+    <>
+      {error && (
+        <div
+          style={{
+            position: "fixed",
+            bottom: 20,
+            right: 20,
+            maxWidth: "350px",
+            zIndex: 2000,
+          }}
+        >
+          <Notification
+            color="red"
+            title="Booking Failed"
+            withCloseButton
+            onClose={() => setError(null)}
+          >
+            {error}
+          </Notification>
+        </div>
+      )}
+      {success && (
+        <div
+          style={{
+            position: "fixed",
+            bottom: 20,
+            right: 20,
+            maxWidth: "350px",
+            zIndex: 2000,
+          }}
+        >
+          <Notification
+            color="green"
+            title="Booking Successful"
+            withCloseButton
+            onClose={() => setSuccess(null)}
+          >
+            {success}
+          </Notification>
+        </div>
+      )}
+      <Container
+        size="sm"
+        style={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
       >
-        <Title order={2} align="center" mb="md" style={{ color: "#1e3a8a" }}>
-          Book an Appointment
-        </Title>
-        <Stack spacing="md">
-          {/* Doctor Selection */}
-          <Select
-            label="Select Doctor"
-            placeholder="Choose a doctor"
-            data={[
-              {
-                value: "Dr. John Smith",
-                label: "Dr. John Smith - Cardiologist",
-              },
-              {
-                value: "Dr. Emily Carter",
-                label: "Dr. Emily Carter - Dentist",
-              },
-              {
-                value: "Dr. Alex Brown",
-                label: "Dr. Alex Brown - Dermatologist",
-              },
-            ]}
-            value={doctor}
-            onChange={setDoctor}
-            required
-          />
+        <Paper
+          shadow="md"
+          radius="lg"
+          p="xl"
+          withBorder
+          style={{ width: "100%" }}
+        >
+          <Title order={2} align="center" mb="md" style={{ color: "#1e3a8a" }}>
+            Book an Appointment
+          </Title>
+          <Stack spacing="md">
+            <Select
+              label="Select Doctor"
+              placeholder="Choose a doctor"
+              data={[
+                {
+                  value: "68a6c556aefae2b51b20dd7b",
+                  label: "Dr. John Smith - Cardiologist",
+                },
+                {
+                  value: "68a8ae82753c412e28e4f126",
+                  label: "Dr. John Doe - Dentist",
+                },
+              ]}
+              value={doctorId}
+              onChange={setDoctorId}
+              required
+            />
 
-          {/* Date Picker */}
-          <DatePicker
-            label="Select Date"
-            placeholder="Pick a date"
-            value={date}
-            onChange={setDate}
-            required
-          />
+            <DatePicker
+              label="Select Date"
+              placeholder="Pick a date"
+              value={date}
+              onChange={setDate}
+              required
+            />
 
-          {/* Time Slots */}
-          <Select
-            label="Select Time"
-            placeholder="Choose a time"
-            data={[
-              "09:00 AM",
-              "10:30 AM",
-              "12:00 PM",
-              "02:00 PM",
-              "03:30 PM",
-              "05:00 PM",
-            ]}
-            value={time}
-            onChange={setTime}
-            required
-          />
+            <Select
+              label="Select Time"
+              placeholder="Choose a timeSlot"
+              data={[
+                "09:00 AM",
+                "10:30 AM",
+                "12:00 PM",
+                "02:00 PM",
+                "03:30 PM",
+                "05:00 PM",
+              ]}
+              value={timeSlot}
+              onChange={setTimeSlot}
+              required
+            />
 
-          {/* Book Button */}
-          <Group position="center" mt="md">
-            <Button
-              color="#1e3a8a"
-              radius="xl"
-              size="md"
-              onClick={handleBooking}
-            >
-              Book Appointment
-            </Button>
-          </Group>
-        </Stack>
-      </Paper>
-    </Container>
+            <Group position="center" mt="md">
+              <Button
+                color="#1e3a8a"
+                radius="xl"
+                size="md"
+                onClick={handleBooking}
+                loading={loading}
+              >
+                Book Appointment
+              </Button>
+            </Group>
+          </Stack>
+        </Paper>
+      </Container>
+    </>
   );
 }

@@ -6,6 +6,9 @@ grpc:
     authService:
       address: "static://localhost:9091"
       negotiationType: plaintext
+    appointmentService:
+      address: "static://localhost:9094"
+      negotiationType: plaintext
     chatService:
       address: "static://localhost:9095"
       negotiationType: plaintext

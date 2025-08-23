@@ -13,6 +13,7 @@ message BookAppointmentRequest {
   string patientId = 1;
   string doctorId = 2;
   string timeSlot = 3;
+  string date = 4;
 }
 
 message BookAppointmentResponse {

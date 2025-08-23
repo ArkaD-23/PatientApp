@@ -1,5 +1,6 @@
 package com.pm.appointment_service.service;
 
+import com.pm.appointment_service.exception.AppointmentAlreadyPresentException;
 import com.pm.appointment_service.model.Appointment;
 import com.pm.appointment_service.repository.AppointmentRepository;
 import com.pm.appointment_service.util.AppointmentStatus;
@@ -16,14 +17,13 @@ public class AppointmentService {
         this.appointmentRepository = appointmentRepository;
     }
 
-    public Appointment bookAppointment(String patientId, String doctorId, String timeSlot) {
-        // check if doctor already has appointment at this timeslot
-        Optional<Appointment> existing = appointmentRepository.findByDoctorIdAndTimeSlot(doctorId, timeSlot);
-        if (existing.isPresent()) {
-            throw new RuntimeException("Doctor not available at this time slot");
+    public Appointment bookAppointment(String patientId, String doctorId, String timeSlot, String date) throws AppointmentAlreadyPresentException {
+        Appointment existing = appointmentRepository.findByTimeSlotAndDateAndDoctorId(timeSlot, date, doctorId);
+        if (existing != null) {
+            throw new AppointmentAlreadyPresentException("Doctor not available at this time slot");
         }
 
-        Appointment appointment = new Appointment(patientId, doctorId, timeSlot, AppointmentStatus.APPROVED);
+        Appointment appointment = new Appointment(patientId, doctorId, timeSlot, date, AppointmentStatus.APPROVED);
         return appointmentRepository.save(appointment);
     }
 }

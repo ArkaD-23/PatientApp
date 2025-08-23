@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/v1/appointments")
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class AppointmentController {
 
     @GrpcClient("appointmentService")
@@ -18,17 +19,15 @@ public class AppointmentController {
     @PostMapping("/book")
     public ResponseEntity<AppointmentResponseDto> bookAppointment(@RequestBody AppointmentDto dto) {
 
-        // Build gRPC request
         BookAppointmentRequest req = BookAppointmentRequest.newBuilder()
                 .setPatientId(dto.getPatientId())
                 .setDoctorId(dto.getDoctorId())
                 .setTimeSlot(dto.getTimeSlot())
+                .setDate(dto.getDate())
                 .build();
 
-        // Call gRPC service
         BookAppointmentResponse res = appointmentServiceStub.bookAppointment(req);
 
-        // Convert gRPC response → REST response
         AppointmentResponseDto responseDto = new AppointmentResponseDto(
                 res.getStatus(),
                 res.getAppointmentId()

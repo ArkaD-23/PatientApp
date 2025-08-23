@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 
 public interface AppointmentRepository extends MongoRepository<Appointment, String> {
-    Optional<Appointment> findByDoctorIdAndTimeSlot(String doctorId, String timeSlot);
+
+    Appointment findByTimeSlotAndDateAndDoctorId(String timeSlot, String date, String doctorId);
 }
 

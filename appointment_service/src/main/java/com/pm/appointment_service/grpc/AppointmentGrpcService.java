@@ -1,5 +1,6 @@
 package com.pm.appointment_service.grpc;
 
+import com.pm.appointment_service.exception.AppointmentAlreadyPresentException;
 import com.pm.appointment_service.model.Appointment;
 import com.pm.appointment_service.service.AppointmentService;
 import com.pm.appointmentservice.grpc.AppointmentServiceGrpc;
@@ -25,13 +26,14 @@ public class AppointmentGrpcService extends AppointmentServiceGrpc.AppointmentSe
     public void bookAppointment(BookAppointmentRequest request,
                                 StreamObserver<BookAppointmentResponse> responseObserver) {
         try {
-            // Directly use string timeSlot
             String timeSlot = request.getTimeSlot();
+            String date = request.getDate();
 
             Appointment appointment = appointmentService.bookAppointment(
                     request.getPatientId(),
                     request.getDoctorId(),
-                    timeSlot
+                    timeSlot,
+                    date
             );
 
             String event = String.format("{\"appointmentId\":\"%s\",\"patientId\":\"%s\",\"doctorId\":\"%s\",\"timeSlot\":\"%s\"}",
@@ -47,7 +49,7 @@ public class AppointmentGrpcService extends AppointmentServiceGrpc.AppointmentSe
             responseObserver.onNext(response);
             responseObserver.onCompleted();
 
-        } catch (RuntimeException e) {
+        } catch (AppointmentAlreadyPresentException e) {
             responseObserver.onError(
                     Status.ALREADY_EXISTS
                             .withDescription(e.getMessage())
