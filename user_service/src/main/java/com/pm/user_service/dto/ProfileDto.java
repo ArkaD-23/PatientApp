@@ -30,12 +30,16 @@ public class ProfileDto {
     @JsonProperty("role")
     private String role;
 
-    public ProfileDto(String fullname, String email, String password, String role) {
+    @JsonProperty("username")
+    private String username;
+
+    public ProfileDto(String fullname, String email, String password, String role, String username) {
 
         this.fullname = fullname;
         this.email = email;
         this.password = password;
         this.role = role;
+        this.username = username;
     }
 
     public ProfileDto(UUID id, String fullname, String email, String password) {

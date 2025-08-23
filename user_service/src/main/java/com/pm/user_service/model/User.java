@@ -24,32 +24,21 @@ import java.util.UUID;
 public class User {
 
     @Id
-    @Column(name = "id")
-    private UUID id = UUID.randomUUID();
+    private String id;
 
-    @Column(name = "email")
     private String email;
 
-    @Column(name = "password")
     private String password;
 
-    @Column(name = "role")
     private String role;
 
-    @Column(name = "username")
-    private String username;
-
-    @Column(name = "fullname")
     private String fullname;
 
-    @Column(name= "status")
-    private Status status;
+    private String username;
 
     @CreatedDate
-    @Column(name = "creatiion_timestamp")
     private Date creationTimestamp;
 
     @LastModifiedDate
-    @Column(name = "last_update_timestamp")
     private Date lastUpdateTimestamp;
 }

@@ -16,7 +16,7 @@ import java.util.UUID;
 public class ProfileResponseDto {
 
     @JsonProperty("id")
-    private UUID id;
+    private String id;
 
     @JsonProperty("fullname")
     private String fullname;
@@ -27,10 +27,14 @@ public class ProfileResponseDto {
     @JsonProperty("role")
     private String role;
 
+    @JsonProperty("username")
+    private String username;
+
     public ProfileResponseDto(User user) {
         this.id = user.getId();
         this.fullname = user.getFullname();
         this.email = user.getEmail();
         this.role = user.getRole();
+        this.username = user.getUsername();
     }
 }

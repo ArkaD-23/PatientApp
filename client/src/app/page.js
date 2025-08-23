@@ -61,7 +61,7 @@ export default function Home() {
             style={{ width: 280 }}
           >
             <div style={{ textAlign: "center" }}>
-              <User size={48} color="#2563eb" style={{ margin: "0 auto" }} />
+              <User size={48} color="#1e3a8a" style={{ margin: "0 auto" }} />
               <Title order={3} mt="md">
                 Find a Doctor
               </Title>
@@ -81,7 +81,7 @@ export default function Home() {
             <div style={{ textAlign: "center" }}>
               <Calendar
                 size={48}
-                color="#2563eb"
+                color="#1e3a8a"
                 style={{ margin: "0 auto" }}
               />
               <Title order={3} mt="md">
@@ -101,7 +101,7 @@ export default function Home() {
             style={{ width: 280 }}
           >
             <div style={{ textAlign: "center" }}>
-              <Phone size={48} color="#2563eb" style={{ margin: "0 auto" }} />
+              <Phone size={48} color="#1e3a8a" style={{ margin: "0 auto" }} />
               <Title order={3} mt="md">
                 24/7 Support
               </Title>
@@ -116,7 +116,7 @@ export default function Home() {
       {/* CTA Section */}
       <div
         style={{
-          backgroundColor: "#2563eb",
+          backgroundColor: "#1e3a8a",
           color: "white",
           padding: "80px 20px",
           textAlign: "center",

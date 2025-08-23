@@ -39,6 +39,7 @@ public class UserService {
         user.setEmail(dto.getEmail());
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
         user.setRole(dto.getRole());
+        user.setUsername(generateUsernameFromEmail(dto.getEmail()));
 
         userRepository.save(user);
         return true;
@@ -96,29 +97,43 @@ public class UserService {
         return new BooleanDto(true);
     }
 
-    public BooleanDto saveUser(UUID userId) throws UserNotFoundException {
+    public String generateUsernameFromEmail(String email) {
 
-        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User not found."));
-        user.setStatus(Status.ONLINE);
-        userRepository.save(user);
-        return new BooleanDto(true);
-    }
+        String baseUsername = email.substring(0, email.indexOf("@")).toLowerCase();
 
-    public BooleanDto disconnect(UUID userId) {
-        var storedUser = userRepository.findById(userId).orElse(null);
-        if (storedUser != null) {
-            storedUser.setStatus(Status.OFFLINE);
-            userRepository.save(storedUser);
-            return new BooleanDto(true);
+        String username = baseUsername;
+
+        int counter = 1;
+        if (userRepository.findByUsername(baseUsername) != null) {
+            username = baseUsername + "_" + UUID.randomUUID().toString().substring(0, 6);
         }
-        return new BooleanDto(false);
+
+        return username;
     }
 
-    public List<ProfileResponseDto> findConnectedUsers() {
-        return userRepository.findAllByStatus(Status.ONLINE)
-                .stream()
-                .map(user -> new ProfileResponseDto(user.getId(), user.getEmail(), user.getFullname(), user.getRole()))
-                .toList();
-    }
+//    public BooleanDto saveUser(UUID userId) throws UserNotFoundException {
+//
+//        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User not found."));
+//        user.setStatus(Status.ONLINE);
+//        userRepository.save(user);
+//        return new BooleanDto(true);
+//    }
+//
+//    public BooleanDto disconnect(UUID userId) {
+//        var storedUser = userRepository.findById(userId).orElse(null);
+//        if (storedUser != null) {
+//            storedUser.setStatus(Status.OFFLINE);
+//            userRepository.save(storedUser);
+//            return new BooleanDto(true);
+//        }
+//        return new BooleanDto(false);
+//    }
+//
+//    public List<ProfileResponseDto> findConnectedUsers() {
+//        return userRepository.findAllByStatus(Status.ONLINE)
+//                .stream()
+//                .map(user -> new ProfileResponseDto(user.getId(), user.getEmail(), user.getFullname(), user.getRole()))
+//                .toList();
+//    }
 
 }

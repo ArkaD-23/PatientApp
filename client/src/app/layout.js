@@ -1,11 +1,12 @@
-"use client"
+"use client";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { MantineProvider } from "@mantine/core";
 import Navbar from "@/components/Navbar";
 
-import '@mantine/core/styles.css';
-import '@mantine/dates/styles.css';
+import "@mantine/core/styles.css";
+import "@mantine/dates/styles.css";
+import StoreProvider from "@/lib/StoreProvider";
 
 // const geistSans = Geist({
 //   variable: "--font-geist-sans",
@@ -25,12 +26,14 @@ import '@mantine/dates/styles.css';
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <MantineProvider>
       <body>
-        <Navbar/>
-        {children}
+        <StoreProvider>
+          <MantineProvider>
+            <Navbar />
+            {children}
+          </MantineProvider>
+        </StoreProvider>
       </body>
-      </MantineProvider>
     </html>
   );
 }

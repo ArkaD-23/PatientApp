@@ -27,6 +27,7 @@ message CreateUserRequest {
   string email = 2;
   string password = 3;
   string role = 4;
+  string username = 5;
 }
 
 message ValidateUserRequest {
@@ -61,8 +62,9 @@ message ProfileResponse {
   string fullname = 2;
   string email = 3;
   string role = 4;
-  bool success = 5;
-  string message = 6;
+  string username = 5;
+  bool success = 6;
+  string message = 7;
 }
 
 message ProfileListResponse {

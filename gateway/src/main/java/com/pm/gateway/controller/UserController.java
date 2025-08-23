@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/v1/users")
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class UserController {
 
     @GrpcClient("userService")

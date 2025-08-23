@@ -29,7 +29,7 @@ public class UserGrpcService extends UserServiceGrpc.UserServiceImplBase {
     public void createUser(CreateUserRequest request, StreamObserver<BooleanResponse> responseObserver) {
         try {
             boolean userCreated = userService.createUser(
-                    new ProfileDto(request.getFullname(), request.getEmail(), request.getPassword(), request.getRole())
+                    new ProfileDto(request.getFullname(), request.getEmail(), request.getPassword(), request.getRole(), request.getUsername())
             );
 
             BooleanResponse response = BooleanResponse.newBuilder()
@@ -132,56 +132,56 @@ public class UserGrpcService extends UserServiceGrpc.UserServiceImplBase {
         }
     }
 
-    @Override
-    public void addUser(UserIdRequest request, StreamObserver<BooleanResponse> responseObserver) {
-        try {
-
-            BooleanDto result = userService.saveUser(UUID.fromString(request.getId()));
-
-            BooleanResponse response = BooleanResponse.newBuilder()
-                    .setStatus(result.getStatus())
-                    .build();
-
-            responseObserver.onNext(response);
-            responseObserver.onCompleted();
-        } catch (UserNotFoundException e) {
-            responseObserver.onError(Status.NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
-        }
-    }
-
-    @Override
-    public void disconnectUser(UserIdRequest request, StreamObserver<BooleanResponse> responseObserver) {
-
-        BooleanDto result = userService.disconnect(UUID.fromString(request.getId()));
-
-        BooleanResponse response = BooleanResponse.newBuilder()
-                .setStatus(result.getStatus())
-                .build();
-
-        responseObserver.onNext(response);
-        responseObserver.onCompleted();
-    }
-
-    @Override
-    public void getConnectedUsers(Empty request, StreamObserver<ProfileListResponse> responseObserver) {
-
-        List<ProfileResponseDto> result = userService.findConnectedUsers();
-        ProfileListResponse response = ProfileListResponse.newBuilder()
-                .addAllProfiles(
-                        result.stream()
-                                .map(dto -> ProfileResponse.newBuilder()
-                                        .setId(dto.getId().toString())
-                                        .setFullname(dto.getFullname())
-                                        .setEmail(dto.getEmail())
-                                        .setRole(dto.getRole())
-                                        .build()
-                                )
-                                .toList()
-                )
-                .build();
-
-        responseObserver.onNext(response);
-        responseObserver.onCompleted();
-    }
+//    @Override
+//    public void addUser(UserIdRequest request, StreamObserver<BooleanResponse> responseObserver) {
+//        try {
+//
+//            BooleanDto result = userService.saveUser(UUID.fromString(request.getId()));
+//
+//            BooleanResponse response = BooleanResponse.newBuilder()
+//                    .setStatus(result.getStatus())
+//                    .build();
+//
+//            responseObserver.onNext(response);
+//            responseObserver.onCompleted();
+//        } catch (UserNotFoundException e) {
+//            responseObserver.onError(Status.NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
+//        }
+//    }
+//
+//    @Override
+//    public void disconnectUser(UserIdRequest request, StreamObserver<BooleanResponse> responseObserver) {
+//
+//        BooleanDto result = userService.disconnect(UUID.fromString(request.getId()));
+//
+//        BooleanResponse response = BooleanResponse.newBuilder()
+//                .setStatus(result.getStatus())
+//                .build();
+//
+//        responseObserver.onNext(response);
+//        responseObserver.onCompleted();
+//    }
+//
+//    @Override
+//    public void getConnectedUsers(Empty request, StreamObserver<ProfileListResponse> responseObserver) {
+//
+//        List<ProfileResponseDto> result = userService.findConnectedUsers();
+//        ProfileListResponse response = ProfileListResponse.newBuilder()
+//                .addAllProfiles(
+//                        result.stream()
+//                                .map(dto -> ProfileResponse.newBuilder()
+//                                        .setId(dto.getId().toString())
+//                                        .setFullname(dto.getFullname())
+//                                        .setEmail(dto.getEmail())
+//                                        .setRole(dto.getRole())
+//                                        .build()
+//                                )
+//                                .toList()
+//                )
+//                .build();
+//
+//        responseObserver.onNext(response);
+//        responseObserver.onCompleted();
+//    }
 
 }
