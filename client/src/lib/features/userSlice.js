@@ -1,10 +1,15 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { getProfile, updateUser } from "@/api/api";
 
-export const fetchProfile = createAsyncThunk("user/get", async () => {
-  const response = await getProfile();
-  console.log("Profile response", response.data);
-  return response.data;
+export const fetchUser = createAsyncThunk("user/get", async ({email, token}) => {
+  const response = await fetch(`http://localhost:8082/v1/users/${email}/${token}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  const data = await response.json();
+  console.log("Profile response", data);
+  return data;
 });
 
 export const userSlice = createSlice({
@@ -13,7 +18,6 @@ export const userSlice = createSlice({
   initialState: {
     data: {},
     status: "idle",
-    updateStatus: "idle",
     error: null,
   },
 
@@ -21,21 +25,21 @@ export const userSlice = createSlice({
 
   extraReducers(builder) {
     builder
-      .addCase(fetchProfile.pending, (state) => {
+      .addCase(fetchUser.pending, (state) => {
         state.status = "loading";
       })
-      .addCase(fetchProfile.fulfilled, (state, action) => {
+      .addCase(fetchUser.fulfilled, (state, action) => {
         state.status = "succeeded";
         state.data = action.payload;
       })
-      .addCase(fetchProfile.rejected, (state, action) => {
+      .addCase(fetchUser.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.error.message;
       })
   },
 });
 
-export const selectProfile = (state) => state.profile;
+export const selectUser = (state) => state.user;
 
-export default profileSlice.reducer;
+export default userSlice.reducer;
 

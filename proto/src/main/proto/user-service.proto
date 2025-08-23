@@ -63,8 +63,6 @@ message ProfileResponse {
   string email = 3;
   string role = 4;
   string username = 5;
-  bool success = 6;
-  string message = 7;
 }
 
 message ProfileListResponse {

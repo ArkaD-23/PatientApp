@@ -1,5 +1,6 @@
 "use client";
 
+import { fetchUser } from "@/lib/features/userSlice";
 import {
   Button,
   Container,
@@ -10,11 +11,27 @@ import {
   Group,
   Flex,
 } from "@mantine/core";
+import { jwtDecode } from "jwt-decode";
 import { Calendar, Phone, User } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useDispatch } from "react-redux";
 
 export default function Home() {
   const router = useRouter();
+  const dispatch = useDispatch();
+  const [token, setToken] = useState(undefined);
+  const [email, setEmail] = useState("");
+
+  useEffect(() => {
+    const storedToken = localStorage.getItem("token");
+    if (storedToken) {
+      const decoded = jwtDecode(storedToken);
+      const userEmail = decoded.sub;
+      dispatch(fetchUser({ email: userEmail, token: storedToken }));
+    }
+  }, []);
+
   return (
     <div>
       {/* Hero Section */}
@@ -33,7 +50,12 @@ export default function Home() {
             visit in just a few clicks.
           </Text>
           <Flex mt="xl" justify="center" gap="md">
-            <Button onClick={() => router.push("/appointment")} size="md" color="#1e40af" radius="xl">
+            <Button
+              onClick={() => router.push("/appointment")}
+              size="md"
+              color="#1e40af"
+              radius="xl"
+            >
               Book Appointment
             </Button>
             <Button size="md" color="#1e40af" variant="outline" radius="xl">

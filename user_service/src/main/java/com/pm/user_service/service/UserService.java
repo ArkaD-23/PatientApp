@@ -74,11 +74,11 @@ public class UserService {
         return new ProfileResponseDto(user);
     }
 
-    public ProfileResponseDto getUser(String username, String token) throws InvalidTokenException, UserNotFoundException {
-        if (!jwtUtil.validateToken(token)) {
-            throw new InvalidTokenException("Invalid token");
-        }
-        User user = userRepository.findByUsername(username);
+    public ProfileResponseDto getUser(String email, String token) throws InvalidTokenException, UserNotFoundException {
+//        if (!jwtUtil.validateToken(token)) {
+//            throw new InvalidTokenException("Invalid token");
+//        }
+        User user = userRepository.findByEmail(email);
         if (user == null) {
             throw new UserNotFoundException("User not found");
         }

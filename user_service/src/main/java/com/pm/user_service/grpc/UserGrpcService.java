@@ -103,8 +103,9 @@ public class UserGrpcService extends UserServiceGrpc.UserServiceImplBase {
                     .setFullname(result.getFullname())
                     .setEmail(result.getEmail())
                     .setRole(result.getRole())
+                    .setUsername(result.getUsername())
                     .build();
-
+            System.out.println("getUser in user grpc: " + response.getUsername());
             responseObserver.onNext(response);
             responseObserver.onCompleted();
         } catch (UserNotFoundException e) {

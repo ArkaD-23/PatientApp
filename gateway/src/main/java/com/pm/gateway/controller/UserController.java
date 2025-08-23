@@ -14,34 +14,36 @@ public class UserController {
     @GrpcClient("userService")
     private UserServiceGrpc.UserServiceBlockingStub userServiceStub;
 
-    @GetMapping("")
-    public ResponseEntity<ProfileDto> getProfile(@RequestBody GetDto dto) {
+    @GetMapping("/{email}/{token}")
+    public ResponseEntity<ProfileDto> getProfile(@PathVariable String email, @PathVariable String token) {
 
         GetUserRequest req = GetUserRequest.newBuilder()
-                .setToken(dto.getToken())
-                .setEmail(dto.getEmail())
+                .setToken(token)
+                .setEmail(email)
                 .build();
 
         ProfileResponse res = userServiceStub.getUser(req);
 
-        return ResponseEntity.ok(new ProfileDto(res.getId(), res.getFullname(), res.getEmail(),  res.getRole(), res.getSuccess(), res.getMessage()));
+        System.out.println("getProfile in controller: " + res);
+
+        return ResponseEntity.ok(new ProfileDto(res.getId(), res.getFullname(), res.getEmail(),  res.getRole(), res.getUsername()));
     }
 
-    @PostMapping("/update")
-    public ResponseEntity<ProfileDto> updateProfile(@RequestBody UpdateDto dto) {
-
-        UpdateRequest req = UpdateRequest.newBuilder()
-                .setId(dto.getId())
-                .setFullname(dto.getFullname())
-                .setEmail(dto.getEmail())
-                .setPassword(dto.getPassword())
-                .setToken(dto.getToken())
-                .build();
-
-        ProfileResponse res  = userServiceStub.update(req);
-
-        return ResponseEntity.ok(new ProfileDto(res.getId(), res.getFullname(), res.getEmail(),  res.getRole(), res.getSuccess(), res.getMessage()));
-    }
+//    @PostMapping("/update")
+//    public ResponseEntity<ProfileDto> updateProfile(@RequestBody UpdateDto dto) {
+//
+//        UpdateRequest req = UpdateRequest.newBuilder()
+//                .setId(dto.getId())
+//                .setFullname(dto.getFullname())
+//                .setEmail(dto.getEmail())
+//                .setPassword(dto.getPassword())
+//                .setToken(dto.getToken())
+//                .build();
+//
+//        ProfileResponse res  = userServiceStub.update(req);
+//
+//        return ResponseEntity.ok(new ProfileDto(res.getId(), res.getFullname(), res.getEmail(),  res.getRole(), res.getSuccess(), res.getMessage()));
+//    }
 
     @DeleteMapping("/delete")
     public ResponseEntity<BooleanDto> deleteUser(@RequestBody DeleteUserDto dto) {

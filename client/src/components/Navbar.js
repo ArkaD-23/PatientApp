@@ -15,10 +15,13 @@ import {
 import { IconChevronDown } from "@tabler/icons-react"; // chevron icon
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useSelector } from "react-redux";
 
 export default function Navbar() {
   const router = useRouter();
   const [token, setToken] = useState(undefined);
+
+  const userData = useSelector((state) => state.user.data);
 
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
@@ -30,8 +33,6 @@ export default function Navbar() {
     setToken(null);
     router.push("/signin");
   };
-
-  const user = { name: "John Doe", initials: "JD" };
 
   return (
     <div style={{ backgroundColor: "#f9fafb" }}>
@@ -63,20 +64,24 @@ export default function Navbar() {
               <>
                 {token && (
                   <>
-                    <Text
-                      weight={500}
-                      style={{ color: "#1f2937", cursor: "pointer" }}
-                      onClick={() => router.push("/doctors")}
-                    >
-                      Doctors
-                    </Text>
-                    <Text
-                      weight={500}
-                      style={{ color: "#1f2937", cursor: "pointer" }}
-                      onClick={() => router.push("/appointment")}
-                    >
-                      Book
-                    </Text>
+                    {userData.role === "PATIENT" && (
+                      <Text
+                        weight={500}
+                        style={{ color: "#1f2937", cursor: "pointer" }}
+                        onClick={() => router.push("/doctors")}
+                      >
+                        Doctors
+                      </Text>
+                    )}
+                    {userData.role === "PATIENT" && (
+                      <Text
+                        weight={500}
+                        style={{ color: "#1f2937", cursor: "pointer" }}
+                        onClick={() => router.push("/appointment")}
+                      >
+                        Book
+                      </Text>
+                    )}
 
                     <Menu shadow="xl" width={180}>
                       <Menu.Target>
@@ -98,10 +103,12 @@ export default function Navbar() {
                           }
                         >
                           <Group spacing="xs">
-                            <Avatar color="blue" radius="xl">
-                              {user.initials}
-                            </Avatar>
-                            <Text weight={500}>{user.name}</Text>
+                            <Avatar
+                              name={userData.fullname}
+                              color="#1e40af"
+                              radius="xl"
+                            />
+                            <Text weight={500}>{userData.email}</Text>
                             <IconChevronDown size={16} stroke={1.5} />
                           </Group>
                         </UnstyledButton>
@@ -133,4 +140,3 @@ export default function Navbar() {
     </div>
   );
 }
-

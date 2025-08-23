@@ -1,5 +1,6 @@
 "use client";
 
+import { fetchUser } from "@/lib/features/userSlice";
 import {
   Button,
   Title,
@@ -12,6 +13,7 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useDispatch } from "react-redux";
 
 export default function SignInPage() {
   const router = useRouter();
@@ -19,6 +21,7 @@ export default function SignInPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const dispatch = useDispatch();
 
   const handleLogin = async () => {
     setLoading(true);
@@ -34,6 +37,7 @@ export default function SignInPage() {
 
       const data = await res.json();
       console.log("✅ Login Response:", data);
+      dispatch(fetchUser(email, data.token));
 
       localStorage.setItem("token", data.token);
 

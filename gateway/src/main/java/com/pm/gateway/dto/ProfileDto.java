@@ -15,7 +15,6 @@ public class ProfileDto {
     private String fullname;
     private String email;
     private String role;
-    private boolean success;
-    private String message;
+    private String username;
 }
 

@@ -73,8 +73,7 @@ public class ChatController {
                         profile.getEmail(),
                         profile.getFullname(),
                         profile.getRole(),
-                        profile.getSuccess(),
-                        profile.getMessage()
+                        profile.getUsername()
                 ))
                 .toList();
 
