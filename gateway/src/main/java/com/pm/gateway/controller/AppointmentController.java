@@ -34,7 +34,9 @@ public class AppointmentController {
                         appointment.getPatientId(),
                         appointment.getTimeSlot(),
                         appointment.getDate(),
-                        appointment.getStatus()
+                        appointment.getStatus(),
+                        appointment.getDoctorName(),
+                        appointment.getPatientName()
                 ))
                 .toList();
 
@@ -57,7 +59,9 @@ public class AppointmentController {
                         appointment.getPatientId(),
                         appointment.getTimeSlot(),
                         appointment.getDate(),
-                        appointment.getStatus()
+                        appointment.getStatus(),
+                        appointment.getDoctorName(),
+                        appointment.getPatientName()
                 ))
                 .toList();
 

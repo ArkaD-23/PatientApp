@@ -4,13 +4,18 @@ import com.pm.appointment_service.exception.AppointmentAlreadyPresentException;
 import com.pm.appointment_service.model.Appointment;
 import com.pm.appointment_service.repository.AppointmentRepository;
 import com.pm.appointment_service.util.AppointmentStatus;
+import com.pm.userservice.grpc.UserIdRequest;
+import com.pm.userservice.grpc.UserServiceGrpc;
+import net.devh.boot.grpc.client.inject.GrpcClient;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class AppointmentService {
+
+    @GrpcClient("userService")
+    private UserServiceGrpc.UserServiceBlockingStub userStub;
 
     private final AppointmentRepository appointmentRepository;
 
@@ -35,7 +40,13 @@ public class AppointmentService {
             throw new AppointmentAlreadyPresentException("Doctor not available at this time slot");
         }
 
-        Appointment appointment = new Appointment(patientId, doctorId, timeSlot, date, AppointmentStatus.APPROVED);
+        UserIdRequest doctorIdRequest = UserIdRequest.newBuilder().setId(doctorId).build();
+        UserIdRequest patientIdRequest = UserIdRequest.newBuilder().setId(patientId).build();
+
+        String doctorName = userStub.getUserById(doctorIdRequest).getFullname();
+        String patientName = userStub.getUserById(patientIdRequest).getFullname();
+
+        Appointment appointment = new Appointment(patientId, doctorId, timeSlot, date, AppointmentStatus.APPROVED, doctorName, patientName);
         return appointmentRepository.save(appointment);
     }
 }

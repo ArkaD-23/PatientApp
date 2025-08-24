@@ -17,6 +17,7 @@ service UserService {
   rpc DisconnectUser(UserIdRequest) returns (BooleanResponse);
   rpc GetConnectedUsers(google.protobuf.Empty) returns (ProfileListResponse);
   rpc GetAllDoctors(google.protobuf.Empty) returns (ProfileListResponse);
+  rpc GetUserById(UserIdRequest) returns (ProfileResponse);
 }
 
 message UserIdRequest {

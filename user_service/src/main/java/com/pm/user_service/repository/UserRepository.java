@@ -5,9 +5,10 @@ import com.pm.user_service.util.Status;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
-public interface UserRepository extends MongoRepository<User, UUID> {
+public interface UserRepository extends MongoRepository<User, String> {
 
     User findByEmail(String email);
 
@@ -16,4 +17,6 @@ public interface UserRepository extends MongoRepository<User, UUID> {
     User findByUsername(String username);
 
     List<User> findByRole(String role);
+
+    User getById(String id);
 }

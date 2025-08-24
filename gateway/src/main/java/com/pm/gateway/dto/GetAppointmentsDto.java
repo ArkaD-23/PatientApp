@@ -20,4 +20,8 @@ public class GetAppointmentsDto {
     private String date;
 
     private String status;
+
+    private String doctorName;
+
+    private String patientName;
 }

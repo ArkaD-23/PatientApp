@@ -22,8 +22,33 @@ export default function AppointmentBooking() {
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [doctors, setDoctors] = useState([]);
 
   const patientId = useSelector((state) => state.user.data?.id);
+
+  const fetchDoctors = async () => {
+
+    const res = await fetch("http://localhost:8082/v1/users/doctors", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    const data = await res.json();
+    console.log("Doctors data:", data);
+
+    const doctorOptions = data.map((doc) => ({
+      value: doc.id, 
+      label: doc.email,
+    }));
+
+    setDoctors(doctorOptions);
+  }
+
+  useEffect(() => {
+    fetchDoctors();
+  }, []);
 
   const handleBooking = async () => {
     setLoading(true);
@@ -121,16 +146,7 @@ export default function AppointmentBooking() {
             <Select
               label="Select Doctor"
               placeholder="Choose a doctor"
-              data={[
-                {
-                  value: "68a6c556aefae2b51b20dd7b",
-                  label: "Dr. John Smith - Cardiologist",
-                },
-                {
-                  value: "68a8ae82753c412e28e4f126",
-                  label: "Dr. John Doe - Dentist",
-                },
-              ]}
+              data={doctors}
               value={doctorId}
               onChange={setDoctorId}
               required

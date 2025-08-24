@@ -38,6 +38,8 @@ public class AppointmentGrpcService extends AppointmentServiceGrpc.AppointmentSe
                                     .setTimeSlot(a.getTimeSlot())
                                     .setDate(a.getDate())
                                     .setStatus(a.getStatus().toString())
+                                    .setDoctorName(a.getDoctorName())
+                                    .setPatientName(a.getPatientName())
                                     .build())
                             .toList();
 
@@ -74,6 +76,8 @@ public class AppointmentGrpcService extends AppointmentServiceGrpc.AppointmentSe
                                     .setTimeSlot(a.getTimeSlot())
                                     .setDate(a.getDate())
                                     .setStatus(a.getStatus().toString())
+                                    .setDoctorName(a.getDoctorName())
+                                    .setPatientName(a.getPatientName())
                                     .build())
                             .toList();
 

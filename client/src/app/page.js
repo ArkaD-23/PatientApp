@@ -20,8 +20,6 @@ import { useDispatch } from "react-redux";
 export default function Home() {
   const router = useRouter();
   const dispatch = useDispatch();
-  const [token, setToken] = useState(undefined);
-  const [email, setEmail] = useState("");
 
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
@@ -51,7 +49,7 @@ export default function Home() {
           </Text>
           <Flex mt="xl" justify="center" gap="md">
             <Button
-              onClick={() => router.push("/appointment")}
+              onClick={() => router.push("/bookslot")}
               size="md"
               color="#1e40af"
               radius="xl"

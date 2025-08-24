@@ -20,6 +20,8 @@ message Appointment {
   string timeSlot = 4;
   string date = 5;
   string status = 6;
+  string doctorName = 7;
+  string patientName = 8;
 }
 
 message AppointmentUserId {

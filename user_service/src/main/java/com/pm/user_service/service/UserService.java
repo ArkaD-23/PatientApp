@@ -75,9 +75,7 @@ public class UserService {
     }
 
     public ProfileResponseDto getUser(String email, String token) throws InvalidTokenException, UserNotFoundException {
-//        if (!jwtUtil.validateToken(token)) {
-//            throw new InvalidTokenException("Invalid token");
-//        }
+
         User user = userRepository.findByEmail(email);
         if (user == null) {
             throw new UserNotFoundException("User not found");
@@ -86,7 +84,17 @@ public class UserService {
         return new ProfileResponseDto(user);
     }
 
-    public BooleanDto deleteUser(UUID id, String token) throws InvalidTokenException, UserNotFoundException {
+    public ProfileResponseDto getUserById(String id) throws UserNotFoundException {
+
+        User user = userRepository.getById(id);
+        if(user == null) {
+            throw new UserNotFoundException("User not found");
+        };
+
+        return new ProfileResponseDto(user);
+    }
+
+    public BooleanDto deleteUser(String id, String token) throws InvalidTokenException, UserNotFoundException {
         if (!jwtUtil.validateToken(token)) {
             throw new InvalidTokenException("Invalid token");
         }

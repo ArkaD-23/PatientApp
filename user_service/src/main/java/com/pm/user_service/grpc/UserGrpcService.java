@@ -117,9 +117,29 @@ public class UserGrpcService extends UserServiceGrpc.UserServiceImplBase {
     }
 
     @Override
+    public void getUserById(UserIdRequest request, StreamObserver<ProfileResponse> responseObserver) {
+        try {
+            ProfileResponseDto result = userService.getUserById(request.getId());
+
+            ProfileResponse response = ProfileResponse.newBuilder()
+                    .setId(result.getId())
+                    .setFullname(result.getFullname())
+                    .setEmail(result.getEmail())
+                    .setRole(result.getRole())
+                    .setUsername(result.getUsername())
+                    .build();
+            System.out.println("getUser in user grpc: " + response.getUsername());
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+        } catch (UserNotFoundException e) {
+            responseObserver.onError(Status.NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
+        }
+    }
+
+    @Override
     public void deleteUser(DeleteUserRequest request, StreamObserver<BooleanResponse> responseObserver) {
         try {
-            BooleanDto result = userService.deleteUser(UUID.fromString(request.getId()), request.getToken());
+            BooleanDto result = userService.deleteUser(request.getId(), request.getToken());
 
             BooleanResponse response = BooleanResponse.newBuilder()
                     .setStatus(result.getStatus())

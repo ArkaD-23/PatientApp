@@ -31,17 +31,23 @@ public class Appointment {
 
     private AppointmentStatus status;
 
+    private String doctorName;
+
+    private String patientName;
+
     @CreatedDate
     private Date creationTimestamp;
 
 
-    public Appointment(String patientId, String doctorId, String timeSlot, String date, AppointmentStatus appointmentStatus) {
+    public Appointment(String patientId, String doctorId, String timeSlot, String date, AppointmentStatus appointmentStatus, String doctorName, String patientName) {
 
         this.patientId = patientId;
         this.doctorId = doctorId;
         this.timeSlot = timeSlot;
         this.date = date;
         this.status = appointmentStatus;
+        this.doctorName = doctorName;
+        this.patientName = patientName;
     }
 }
 

@@ -49,9 +49,9 @@ export default function DoctorsList() {
           <Card key={doc.id} shadow="sm" radius="md" withBorder>
             <Group position="apart">
               <Group>
-                <Avatar name={doc.fullname} color="blue" radius="xl"/>
+                <Avatar name={doc.email} color="#1e40af" radius="xl"/>
                 <div>
-                  <Text weight={600}>{doc.fullname}</Text>
+                  <Text weight={600}>{doc.email}</Text>
                   {/* <Text size="sm" color="dimmed">
                     {doc.specialty}
                   </Text> */}
@@ -61,7 +61,7 @@ export default function DoctorsList() {
               <Group spacing="xs">
                 <Button
                   size="xs"
-                  color="blue"
+                  color="#1e40af"
                   variant="light"
                   onClick={() => router.push(`/message/${user.id}/${doc.id}`)}
                 >
@@ -69,7 +69,7 @@ export default function DoctorsList() {
                 </Button>
                 <Button
                   size="xs"
-                  color="green"
+                  color="#1e40af"
                   onClick={() => router.push(`/videochat/${user.id}/${doc.id}`)}
                 >
                   Video Call
