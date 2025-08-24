@@ -1,10 +1,13 @@
 package com.pm.gateway.controller;
 
+import com.google.protobuf.Empty;
 import com.pm.gateway.dto.*;
 import com.pm.userservice.grpc.*;
 import net.devh.boot.grpc.client.inject.GrpcClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/v1/users")
@@ -27,6 +30,24 @@ public class UserController {
         System.out.println("getProfile in controller: " + res);
 
         return ResponseEntity.ok(new ProfileDto(res.getId(), res.getFullname(), res.getEmail(),  res.getRole(), res.getUsername()));
+    }
+
+    @GetMapping("/doctors")
+    public ResponseEntity<List<ProfileDto>> getDoctors() {
+
+        ProfileListResponse res = userServiceStub.getAllDoctors(Empty.getDefaultInstance());
+
+        List<ProfileDto> list = res.getProfilesList().stream()
+                .map(profile -> new ProfileDto(
+                        profile.getId(),
+                        profile.getEmail(),
+                        profile.getFullname(),
+                        profile.getRole(),
+                        profile.getUsername()
+                ))
+                .toList();
+
+        return ResponseEntity.ok(list);
     }
 
 //    @PostMapping("/update")

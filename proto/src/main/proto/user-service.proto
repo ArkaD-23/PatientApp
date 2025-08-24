@@ -16,10 +16,11 @@ service UserService {
   rpc AddUser(UserIdRequest) returns (BooleanResponse);
   rpc DisconnectUser(UserIdRequest) returns (BooleanResponse);
   rpc GetConnectedUsers(google.protobuf.Empty) returns (ProfileListResponse);
+  rpc GetAllDoctors(google.protobuf.Empty) returns (ProfileListResponse);
 }
 
 message UserIdRequest {
-  string id =1;
+  string id = 1;
 }
 
 message CreateUserRequest {

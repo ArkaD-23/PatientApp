@@ -16,8 +16,6 @@ export default function Chat({ senderId, recipientId }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [stompClient, setStompClient] = useState(null);
-  //const senderId = "68a6c556aefae2b51b20dd7b";
-  //const recipientId = "68a6c58faefae2b51b20dd7c";
 
   useEffect(() => {
     const client = new Client({
@@ -57,7 +55,6 @@ export default function Chat({ senderId, recipientId }) {
     if (!input.trim() || !stompClient) return;
 
     const chatMessage = {
-      roomId: "room68a6c556aefae2b51b20dd7b_68a6c58faefae2b51b20dd7c",
       senderId: senderId,
       recipientId: recipientId,
       content: input,
@@ -98,7 +95,7 @@ export default function Chat({ senderId, recipientId }) {
         {/* Messages */}
         <ScrollArea style={{ flex: 1, marginBottom: "10px" }}>
           <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-            {messages.map((msg, i) => (
+          {Array.isArray(messages) ? messages.map((msg, i) => (
               <div
                 key={i}
                 style={{
@@ -114,7 +111,7 @@ export default function Chat({ senderId, recipientId }) {
               >
                 <Text size="sm">{msg.content}</Text>
               </div>
-            ))}
+            )) : null}
           </div>
         </ScrollArea>
 

@@ -20,7 +20,7 @@ public class ChatRoomService {
                 .findBySenderIdAndRecipientId(senderId, recipientId)
                 .map(ChatRoom::getRoomId)
                 .or(() -> {
-                    if(createNewRoomIfNotExists) {
+                    if(!createNewRoomIfNotExists) {
                         var roomId = createRoomId(senderId, recipientId);
                         System.out.println("Roomid: " + roomId);
                         return Optional.of(roomId);
@@ -32,6 +32,7 @@ public class ChatRoomService {
 
     private String createRoomId(String senderId, String recipientId) {
         var chatId = String.format("%s_%s", senderId, recipientId);
+        var reverseChatId = String.format("%s_%s", recipientId, senderId);
 
         ChatRoom senderRecipient = ChatRoom
                 .builder()
@@ -42,7 +43,7 @@ public class ChatRoomService {
 
         ChatRoom recipientSender = ChatRoom
                 .builder()
-                .roomId(chatId)
+                .roomId(reverseChatId)
                 .senderId(recipientId)
                 .recipientId(senderId)
                 .build();

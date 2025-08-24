@@ -2,11 +2,28 @@ syntax = "proto3";
 
 package appointment;
 
+import "google/protobuf/empty.proto";
+
 option java_package = "com.pm.appointmentservice.grpc";
 option java_multiple_files = true;
 
 service AppointmentService {
   rpc BookAppointment(BookAppointmentRequest) returns (BookAppointmentResponse);
+  rpc GetDoctorAppointments(AppointmentUserId) returns (GetAppointmentResponse);
+  rpc GetPatientAppointments(AppointmentUserId) returns (GetAppointmentResponse);
+}
+
+message Appointment {
+  string appointmentId = 1;
+  string patientId = 2;
+  string doctorId = 3;
+  string timeSlot = 4;
+  string date = 5;
+  string status = 6;
+}
+
+message AppointmentUserId {
+  string userId = 1;
 }
 
 message BookAppointmentRequest {
@@ -19,4 +36,8 @@ message BookAppointmentRequest {
 message BookAppointmentResponse {
   string appointmentId = 1;
   string status = 2;
+}
+
+message GetAppointmentResponse {
+  repeated Appointment appointments = 1;
 }

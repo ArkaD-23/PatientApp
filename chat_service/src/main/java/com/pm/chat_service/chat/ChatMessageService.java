@@ -1,5 +1,6 @@
 package com.pm.chat_service.chat;
 
+import com.pm.chat_service.chatroom.ChatRoomRepository;
 import com.pm.chat_service.chatroom.ChatRoomService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -14,8 +15,10 @@ public class ChatMessageService {
 
     private final ChatMessageRepository repository;
     private final ChatRoomService chatRoomService;
+    private final ChatRoomRepository chatRoomRepository;
 
     public ChatMessage save(ChatMessage chatMessage) {
+        boolean exists = chatRoomRepository.existsByRoomId(chatMessage.getSenderId()+"_"+chatMessage.getRecipientId());
         var roomId = chatRoomService
                 .getChatRoomId(chatMessage.getSenderId(), chatMessage.getRecipientId(), true)
                 .orElseThrow();
@@ -26,7 +29,8 @@ public class ChatMessageService {
 
     public List<ChatMessage> findChatMessages(String senderId, String recipientId) {
 
-        var roomId = chatRoomService.getChatRoomId(senderId, recipientId, false);
+        boolean exists = chatRoomRepository.existsByRoomId(senderId+"_"+recipientId);
+        var roomId = chatRoomService.getChatRoomId(senderId, recipientId, exists);
 
         String reversedRoomId = roomId
                 .map(id -> {

@@ -3,13 +3,13 @@ package com.pm.appointment_service.grpc;
 import com.pm.appointment_service.exception.AppointmentAlreadyPresentException;
 import com.pm.appointment_service.model.Appointment;
 import com.pm.appointment_service.service.AppointmentService;
-import com.pm.appointmentservice.grpc.AppointmentServiceGrpc;
-import com.pm.appointmentservice.grpc.BookAppointmentRequest;
-import com.pm.appointmentservice.grpc.BookAppointmentResponse;
+import com.pm.appointmentservice.grpc.*;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import net.devh.boot.grpc.server.service.GrpcService;
 import org.springframework.kafka.core.KafkaTemplate;
+
+import java.util.List;
 
 @GrpcService
 public class AppointmentGrpcService extends AppointmentServiceGrpc.AppointmentServiceImplBase {
@@ -20,6 +20,78 @@ public class AppointmentGrpcService extends AppointmentServiceGrpc.AppointmentSe
     public AppointmentGrpcService(AppointmentService appointmentService, KafkaTemplate kafkaTemplate) {
         this.appointmentService = appointmentService;
         this.kafkaTemplate = kafkaTemplate;
+    }
+
+    @Override
+    public void getDoctorAppointments(AppointmentUserId request, StreamObserver<GetAppointmentResponse> responseObserver) {
+
+        try {
+
+            List<Appointment> domainAppointments = appointmentService.getAllDoctorAppointments(request.getUserId());
+
+            List<com.pm.appointmentservice.grpc.Appointment> grpcAppointments =
+                    domainAppointments.stream()
+                            .map(a -> com.pm.appointmentservice.grpc.Appointment.newBuilder()
+                                    .setAppointmentId(a.getId())
+                                    .setPatientId(a.getPatientId())
+                                    .setDoctorId(a.getDoctorId())
+                                    .setTimeSlot(a.getTimeSlot())
+                                    .setDate(a.getDate())
+                                    .setStatus(a.getStatus().toString())
+                                    .build())
+                            .toList();
+
+            GetAppointmentResponse response = GetAppointmentResponse.newBuilder()
+                    .addAllAppointments(grpcAppointments)
+                    .build();
+
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+
+        } catch (RuntimeException e) {
+            responseObserver.onError(
+                    Status.INTERNAL
+                            .withDescription("Internal server error")
+                            .augmentDescription(e.getMessage())
+                            .asRuntimeException()
+            );
+        }
+    }
+
+    @Override
+    public void getPatientAppointments(AppointmentUserId request, StreamObserver<GetAppointmentResponse> responseObserver) {
+
+        try {
+
+            List<Appointment> domainAppointments = appointmentService.getAllPatientAppointments(request.getUserId());
+
+            List<com.pm.appointmentservice.grpc.Appointment> grpcAppointments =
+                    domainAppointments.stream()
+                            .map(a -> com.pm.appointmentservice.grpc.Appointment.newBuilder()
+                                    .setAppointmentId(a.getId())
+                                    .setPatientId(a.getPatientId())
+                                    .setDoctorId(a.getDoctorId())
+                                    .setTimeSlot(a.getTimeSlot())
+                                    .setDate(a.getDate())
+                                    .setStatus(a.getStatus().toString())
+                                    .build())
+                            .toList();
+
+            GetAppointmentResponse response = GetAppointmentResponse.newBuilder()
+                    .addAllAppointments(grpcAppointments)
+                    .build();
+
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+
+        } catch (RuntimeException e) {
+            responseObserver.onError(
+                    Status.INTERNAL
+                            .withDescription("Internal server error")
+                            .augmentDescription(e.getMessage())
+                            .asRuntimeException()
+            );
+        }
     }
 
     @Override

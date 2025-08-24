@@ -6,6 +6,7 @@ import com.pm.user_service.dto.ProfileDto;
 import com.pm.user_service.dto.ProfileResponseDto;
 import com.pm.user_service.exception.InvalidTokenException;
 import com.pm.user_service.exception.UserNotFoundException;
+import com.pm.user_service.model.User;
 import com.pm.user_service.service.UserService;
 import com.pm.userservice.grpc.*;
 import io.grpc.Status;
@@ -133,56 +134,38 @@ public class UserGrpcService extends UserServiceGrpc.UserServiceImplBase {
         }
     }
 
-//    @Override
-//    public void addUser(UserIdRequest request, StreamObserver<BooleanResponse> responseObserver) {
-//        try {
-//
-//            BooleanDto result = userService.saveUser(UUID.fromString(request.getId()));
-//
-//            BooleanResponse response = BooleanResponse.newBuilder()
-//                    .setStatus(result.getStatus())
-//                    .build();
-//
-//            responseObserver.onNext(response);
-//            responseObserver.onCompleted();
-//        } catch (UserNotFoundException e) {
-//            responseObserver.onError(Status.NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
-//        }
-//    }
-//
-//    @Override
-//    public void disconnectUser(UserIdRequest request, StreamObserver<BooleanResponse> responseObserver) {
-//
-//        BooleanDto result = userService.disconnect(UUID.fromString(request.getId()));
-//
-//        BooleanResponse response = BooleanResponse.newBuilder()
-//                .setStatus(result.getStatus())
-//                .build();
-//
-//        responseObserver.onNext(response);
-//        responseObserver.onCompleted();
-//    }
-//
-//    @Override
-//    public void getConnectedUsers(Empty request, StreamObserver<ProfileListResponse> responseObserver) {
-//
-//        List<ProfileResponseDto> result = userService.findConnectedUsers();
-//        ProfileListResponse response = ProfileListResponse.newBuilder()
-//                .addAllProfiles(
-//                        result.stream()
-//                                .map(dto -> ProfileResponse.newBuilder()
-//                                        .setId(dto.getId().toString())
-//                                        .setFullname(dto.getFullname())
-//                                        .setEmail(dto.getEmail())
-//                                        .setRole(dto.getRole())
-//                                        .build()
-//                                )
-//                                .toList()
-//                )
-//                .build();
-//
-//        responseObserver.onNext(response);
-//        responseObserver.onCompleted();
-//    }
+    @Override
+    public void getAllDoctors(Empty request, StreamObserver<ProfileListResponse> responseObserver) {
+
+        try {
+
+            List<User> domainDoctors = userService.getDoctors("DOCTOR");
+
+            List<ProfileResponse> grpcDoctors =
+                    domainDoctors.stream()
+                            .map(user -> ProfileResponse.newBuilder()
+                                    .setId(user.getId().toString())
+                                    .setFullname(user.getFullname())
+                                    .setEmail(user.getEmail())
+                                    .setRole(user.getRole())
+                                    .setUsername(user.getUsername())
+                                    .build())
+                            .toList();
+
+            ProfileListResponse response = ProfileListResponse.newBuilder()
+                    .addAllProfiles(grpcDoctors)
+                    .build();
+
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+        } catch (RuntimeException e) {
+            responseObserver.onError(
+                    Status.INTERNAL
+                            .withDescription("Internal server error")
+                            .augmentDescription(e.getMessage())
+                            .asRuntimeException()
+            );
+        }
+    }
 
 }

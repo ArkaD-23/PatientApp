@@ -11,17 +11,31 @@ import {
   Text,
   Title,
 } from "@mantine/core";
+import { useRouter } from "next/navigation";
+import { useSelector } from "react-redux";
 
 export default function DoctorsList() {
   const [doctors, setDoctors] = useState([]);
+  const router = useRouter();
+  const user = useSelector((state) => state.user.data);
+
+  const fetchDoctors = async () => {
+
+    const res = await fetch("http://localhost:8082/v1/users/doctors", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    const data = await res.json();
+    console.log("Doctors data:", data);
+
+    setDoctors(data);
+  }
 
   useEffect(() => {
-    setDoctors([
-      { id: 1, name: "Alice Johnson", specialty: "Cardiologist" },
-      { id: 2, name: "Brian Smith", specialty: "Dermatologist" },
-      { id: 3, name: "Clara White", specialty: "Pediatrician" },
-      { id: 4, name: "David Lee", specialty: "Neurologist" },
-    ]);
+    fetchDoctors();
   }, []);
 
   return (
@@ -35,18 +49,12 @@ export default function DoctorsList() {
           <Card key={doc.id} shadow="sm" radius="md" withBorder>
             <Group position="apart">
               <Group>
-                <Avatar color="blue" radius="xl">
-                  {doc.name
-                    .split(" ")
-                    .map((n) => n[0])
-                    .join("")
-                    .toUpperCase()}
-                </Avatar>
+                <Avatar name={doc.fullname} color="blue" radius="xl"/>
                 <div>
-                  <Text weight={600}>{doc.name}</Text>
-                  <Text size="sm" color="dimmed">
+                  <Text weight={600}>{doc.fullname}</Text>
+                  {/* <Text size="sm" color="dimmed">
                     {doc.specialty}
-                  </Text>
+                  </Text> */}
                 </div>
               </Group>
 
@@ -55,14 +63,14 @@ export default function DoctorsList() {
                   size="xs"
                   color="blue"
                   variant="light"
-                  onClick={() => alert(`Chat with ${doc.name}`)}
+                  onClick={() => router.push(`/message/${user.id}/${doc.id}`)}
                 >
                   Chat
                 </Button>
                 <Button
                   size="xs"
                   color="green"
-                  onClick={() => alert(`Video call with ${doc.name}`)}
+                  onClick={() => router.push(`/videochat/${user.id}/${doc.id}`)}
                 >
                   Video Call
                 </Button>

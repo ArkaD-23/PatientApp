@@ -6,6 +6,7 @@ import com.pm.appointment_service.repository.AppointmentRepository;
 import com.pm.appointment_service.util.AppointmentStatus;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -16,6 +17,17 @@ public class AppointmentService {
     public AppointmentService(AppointmentRepository appointmentRepository) {
         this.appointmentRepository = appointmentRepository;
     }
+
+    public List<Appointment> getAllDoctorAppointments(String doctorId) {
+
+        return appointmentRepository.findByDoctorId(doctorId);
+    }
+
+    public List<Appointment> getAllPatientAppointments(String patientId) {
+
+        return appointmentRepository.findByPatientId(patientId);
+    }
+
 
     public Appointment bookAppointment(String patientId, String doctorId, String timeSlot, String date) throws AppointmentAlreadyPresentException {
         Appointment existing = appointmentRepository.findByTimeSlotAndDateAndDoctorId(timeSlot, date, doctorId);
