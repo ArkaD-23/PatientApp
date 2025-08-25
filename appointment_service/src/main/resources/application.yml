@@ -1,8 +1,8 @@
 grpc:
   client:
     userService:
-      address: static://localhost:9090
+      address: static://user-service:9085
       negotiation-type: plaintext
   server:
-    port: 9096
+    port: 9088
     enable-reflection: true

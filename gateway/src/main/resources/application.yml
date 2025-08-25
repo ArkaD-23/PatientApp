@@ -1,16 +1,16 @@
 grpc:
   client:
     userService:
-      address: "static://localhost:9090"
+      address: "static://user-service:9085"
       negotiationType: plaintext
     authService:
-      address: "static://localhost:9091"
+      address: "static://auth-service:9086"
       negotiationType: plaintext
     appointmentService:
-      address: "static://localhost:9096"
+      address: "static://appointment-service:9088"
       negotiationType: plaintext
     chatService:
-      address: "static://localhost:9095"
+      address: "static://chat-service:9087"
       negotiationType: plaintext
   server:
     port: -1

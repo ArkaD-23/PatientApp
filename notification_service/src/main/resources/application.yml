@@ -1,0 +1,37 @@
+server:
+  port: 8089
+
+spring:
+  application:
+    name: notification_service
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: notification_service
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+    listener:
+      ack-mode: record
+      concurrency: 2
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: arkapravadhar16064@gmail.com
+    password: ynfl xfws bmnv npnv
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+    default-encoding: UTF-8
+
+notifications:
+  # If your event doesn?t carry emails, you can build them from IDs as a fallback
+  emailDomainFallback: example.com
+  from: "MediBridge <no-reply@your-domain.com>"
+  topic: appointments

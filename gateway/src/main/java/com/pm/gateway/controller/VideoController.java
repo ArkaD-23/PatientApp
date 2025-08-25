@@ -14,7 +14,6 @@ public class VideoController {
 
     @MessageMapping("/webrtc.offer")
     public void handleOffer(WebRTCMessage message) {
-        System.out.println("📩 OFFER received: " + message.getType());
         messagingTemplate.convertAndSend(
                 "/topic/webrtc." + message.getRecipientId(),
                 message

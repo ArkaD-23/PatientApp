@@ -1,5 +1,6 @@
 package com.pm.appointment_service.grpc;
 
+import com.pm.appointment_service.dto.AppointmentDto;
 import com.pm.appointment_service.exception.AppointmentAlreadyPresentException;
 import com.pm.appointment_service.model.Appointment;
 import com.pm.appointment_service.service.AppointmentService;
@@ -105,15 +106,15 @@ public class AppointmentGrpcService extends AppointmentServiceGrpc.AppointmentSe
             String timeSlot = request.getTimeSlot();
             String date = request.getDate();
 
-            Appointment appointment = appointmentService.bookAppointment(
+            AppointmentDto appointment = appointmentService.bookAppointment(
                     request.getPatientId(),
                     request.getDoctorId(),
                     timeSlot,
                     date
             );
 
-            String event = String.format("{\"appointmentId\":\"%s\",\"patientId\":\"%s\",\"doctorId\":\"%s\",\"timeSlot\":\"%s\"}",
-                    appointment.getId(), request.getPatientId(), request.getDoctorId(), request.getTimeSlot());
+            String event = String.format("{\"appointmentId\":\"%s\",\"patientId\":\"%s\",\"doctorId\":\"%s\",\"timeSlot\":\"%s\", \"doctorName\":\"%s\", \"patientName\":\"%s\", \"doctorEmail\":\"%s\", \"patientEmail\":\"%s\"}",
+                    appointment.getId(), request.getPatientId(), request.getDoctorId(), request.getTimeSlot(), appointment.getDoctorName(), appointment.getPatientName(), appointment.getDoctorEmail(), appointment.getPatientEmail());
 
             kafkaTemplate.send("appointments", appointment.getId(), event);
 

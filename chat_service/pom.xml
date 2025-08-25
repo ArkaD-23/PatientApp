@@ -29,6 +29,12 @@
     <properties>
         <java.version>17</java.version>
     </properties>
+    <repositories>
+        <repository>
+            <id>github</id>
+            <url>https://maven.pkg.github.com/ArkaD-23/PatientApp</url>
+        </repository>
+    </repositories>
     <dependencies>
         <!-- Spring Boot Starters -->
         <dependency>
