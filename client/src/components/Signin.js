@@ -27,7 +27,7 @@ export default function SignInPage() {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("http://localhost:8082/v1/auth/login", {
+      const res = await fetch("http://gateway:8090/v1/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),

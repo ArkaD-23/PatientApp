@@ -1,16 +1,15 @@
-grpc:
-  client:
-    userService:
-      address: "static://user-service:9085"
-      negotiationType: plaintext
-    authService:
-      address: "static://auth-service:9086"
-      negotiationType: plaintext
-    appointmentService:
-      address: "static://appointment-service:9088"
-      negotiationType: plaintext
-    chatService:
-      address: "static://chat-service:9087"
-      negotiationType: plaintext
-  server:
-    port: -1
+user:
+  service:
+    url: https://user-service-kbh0.onrender.com/api/users
+
+auth:
+  service:
+    url: https://auth-service-y5m5.onrender.com/api/auth
+
+chat:
+  service:
+    url: https://chat-service-qtsr.onrender.com/api/chat
+
+appointment:
+  service:
+    url: https://appointment-service-l1wg.onrender.com/api/appointments

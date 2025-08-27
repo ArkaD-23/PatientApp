@@ -30,7 +30,7 @@ export default function SignUpPage() {
 
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:8082/v1/auth/register", {
+      const res = await fetch("http://gateway:8090/v1/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

@@ -1,8 +1,7 @@
-grpc:
-  client:
-    userService:
-      address: static://user-service:9085
-      negotiation-type: plaintext
-  server:
-    port: 9086
-    reflection-service-enabled: true
+user:
+  service:
+    url: https://user-service-kbh0.onrender.com/api/users
+
+
+
+

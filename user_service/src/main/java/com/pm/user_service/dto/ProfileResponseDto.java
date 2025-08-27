@@ -2,10 +2,7 @@ package com.pm.user_service.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.pm.user_service.model.User;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.UUID;
 
@@ -13,6 +10,7 @@ import java.util.UUID;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@Data
 public class ProfileResponseDto {
 
     @JsonProperty("id")

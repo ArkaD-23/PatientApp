@@ -2,56 +2,66 @@ package com.pm.auth_service.service;
 
 import com.pm.auth_service.dto.*;
 import com.pm.auth_service.exception.UserAlreadyExistsException;
-import com.pm.userservice.grpc.BooleanResponse;
-import com.pm.userservice.grpc.CreateUserRequest;
-import com.pm.userservice.grpc.UserServiceGrpc;
-import com.pm.userservice.grpc.ValidateUserRequest;
-import net.devh.boot.grpc.client.inject.GrpcClient;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 @Service
 public class AuthService {
 
-    @GrpcClient("userService")
-    private UserServiceGrpc.UserServiceBlockingStub userStub;
-
     private final JwtUtil jwtUtil;
+    private final RestTemplate restTemplate = new RestTemplate();
+
+    @Value("${user.service.url}")
+    private String userServiceUrl;
 
     public AuthService(JwtUtil jwtUtil) {
         this.jwtUtil = jwtUtil;
     }
 
     public BooleanDto registerUser(RegisterDto registerDto) {
-        CreateUserRequest request = CreateUserRequest.newBuilder()
-                .setEmail(registerDto.getEmail())
-                .setPassword(registerDto.getPassword())
-                .setFullname(registerDto.getFullname())
-                .setRole(registerDto.getRole())
-                .build();
+        try {
+            HttpEntity<RegisterDto> request = new HttpEntity<>(registerDto);
+            ResponseEntity<BooleanDto> response = restTemplate.exchange(
+                    userServiceUrl + "/create",
+                    HttpMethod.POST,
+                    request,
+                    BooleanDto.class
+            );
 
-        BooleanResponse response = userStub.createUser(request);
+            if (response.getBody() != null && response.getBody().getStatus()) {
+                return new BooleanDto(true);
+            } else {
+                throw new UserAlreadyExistsException("User already exists");
+            }
 
-        if (!response.getStatus()) {
-            throw new UserAlreadyExistsException("User already exists");
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to register user: " + e.getMessage());
         }
-
-        return new BooleanDto(true);
     }
 
     public LoginResponseDto userLogin(LoginDto loginDto) {
-        ValidateUserRequest request = ValidateUserRequest.newBuilder()
-                .setEmail(loginDto.getEmail())
-                .setPassword(loginDto.getPassword())
-                .build();
+        try {
+            HttpEntity<LoginDto> request = new HttpEntity<>(loginDto);
+            ResponseEntity<BooleanDto> response = restTemplate.exchange(
+                    userServiceUrl + "/validate",
+                    HttpMethod.POST,
+                    request,
+                    BooleanDto.class
+            );
 
-        BooleanResponse response = userStub.validateUser(request);
+            if (response.getBody() != null && response.getBody().getStatus()) {
+                String jwt = jwtUtil.generateToken(loginDto.getEmail());
+                return new LoginResponseDto(true, jwt);
+            } else {
+                return new LoginResponseDto(false, "");
+            }
 
-        if (!response.getStatus()) {
+        } catch (Exception e) {
             return new LoginResponseDto(false, "");
         }
-
-        String jwt = jwtUtil.generateToken(loginDto.getEmail());
-
-        return new LoginResponseDto(true, jwt);
     }
 }

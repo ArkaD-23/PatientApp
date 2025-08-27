@@ -1,4 +1,4 @@
-package com.pm.gateway.dto;
+package com.pm.user_service.dto;
 
 import lombok.*;
 
@@ -6,8 +6,9 @@ import lombok.*;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @Data
-public class LoginDto {
+public class ValidationDto {
 
     private String email;
     private String password;

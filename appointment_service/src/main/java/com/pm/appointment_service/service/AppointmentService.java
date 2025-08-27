@@ -5,59 +5,64 @@ import com.pm.appointment_service.exception.AppointmentAlreadyPresentException;
 import com.pm.appointment_service.model.Appointment;
 import com.pm.appointment_service.repository.AppointmentRepository;
 import com.pm.appointment_service.util.AppointmentStatus;
-import com.pm.userservice.grpc.ProfileResponse;
-import com.pm.userservice.grpc.UserIdRequest;
-import com.pm.userservice.grpc.UserServiceGrpc;
-import net.devh.boot.grpc.client.inject.GrpcClient;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class AppointmentService {
 
-    @GrpcClient("userService")
-    private UserServiceGrpc.UserServiceBlockingStub userStub;
-
     private final AppointmentRepository appointmentRepository;
+    private final RestTemplate restTemplate = new RestTemplate();
+
+    @Value("${user.service.url}")
+    private String userServiceUrl;
 
     public AppointmentService(AppointmentRepository appointmentRepository) {
         this.appointmentRepository = appointmentRepository;
     }
 
     public List<Appointment> getAllDoctorAppointments(String doctorId) {
-
         return appointmentRepository.findByDoctorId(doctorId);
     }
 
     public List<Appointment> getAllPatientAppointments(String patientId) {
-
         return appointmentRepository.findByPatientId(patientId);
     }
 
+    public AppointmentDto bookAppointment(String patientId, String doctorId, String timeSlot, String date)
+            throws AppointmentAlreadyPresentException {
 
-    public AppointmentDto bookAppointment(String patientId, String doctorId, String timeSlot, String date) throws AppointmentAlreadyPresentException {
         Appointment existing = appointmentRepository.findByTimeSlotAndDateAndDoctorId(timeSlot, date, doctorId);
         if (existing != null) {
             throw new AppointmentAlreadyPresentException("Doctor not available at this time slot");
         }
 
-        UserIdRequest doctorIdRequest = UserIdRequest.newBuilder().setId(doctorId).build();
-        UserIdRequest patientIdRequest = UserIdRequest.newBuilder().setId(patientId).build();
+        // Call UserService REST instead of gRPC
+        Map<String, Object> doctor = restTemplate.getForObject(userServiceUrl, Map.class, doctorId);
+        Map<String, Object> patient = restTemplate.getForObject(userServiceUrl, Map.class, patientId);
 
-        ProfileResponse doctor = userStub.getUserById(doctorIdRequest);
-        ProfileResponse patient = userStub.getUserById(patientIdRequest);
+        String doctorName = (String) doctor.get("fullname");
+        String patientName = (String) patient.get("fullname");
 
-        String doctorName = doctor.getFullname();
-        String patientName = patient.getFullname();
+        String doctorEmail = (String) doctor.get("email");
+        String patientEmail = (String) patient.get("email");
 
-        String doctorEmail = doctor.getEmail();
-        String patientEmail = patient.getEmail();
+        Appointment appointment = new Appointment(
+                patientId,
+                doctorId,
+                timeSlot,
+                date,
+                AppointmentStatus.APPROVED,
+                doctorName,
+                patientName
+        );
 
-        Appointment appointment = new Appointment(patientId, doctorId, timeSlot, date, AppointmentStatus.APPROVED, doctorName, patientName);
         appointmentRepository.save(appointment);
 
         return new AppointmentDto(appointment, doctorEmail, patientEmail);
     }
 }
-

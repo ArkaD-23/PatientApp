@@ -29,7 +29,7 @@ export default function Chat({ senderId, recipientId }) {
 
       // 1. load history first
       const res = await fetch(
-        `http://localhost:8082/v1/chat/messages/${senderId}/${recipientId}`
+        `http://gateway:8090/v1/chat/messages/${senderId}/${recipientId}`
       );
       const data = await res.json();
       setMessages(data);

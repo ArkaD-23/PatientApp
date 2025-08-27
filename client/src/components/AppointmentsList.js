@@ -30,7 +30,7 @@ export default function AppointmentsPage() {
         let res;
         if (userData.role !== "DOCTOR") {
           res = await fetch(
-            `http://localhost:8082/v1/appointments/patients/${userData.id}`,
+            `http://gateway:8090/v1/appointments/patients/${userData.id}`,
             {
               method: "GET",
               headers: { "Content-Type": "application/json" },
@@ -38,7 +38,7 @@ export default function AppointmentsPage() {
           );
         } else {
           res = await fetch(
-            `http://localhost:8082/v1/appointments/doctors/${userData.id}`,
+            `http://gateway:8090/v1/appointments/doctors/${userData.id}`,
             {
               method: "GET",
               headers: { "Content-Type": "application/json" },

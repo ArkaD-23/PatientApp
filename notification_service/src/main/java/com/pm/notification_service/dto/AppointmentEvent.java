@@ -1,4 +1,4 @@
-package com.pm.notificationservice.dto;
+package com.pm.notification_service.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;

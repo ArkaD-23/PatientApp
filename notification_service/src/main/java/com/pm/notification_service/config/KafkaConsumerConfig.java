@@ -1,4 +1,4 @@
-package com.pm.notificationservice.config;
+package com.pm.notification_service.config;
 
 import org.springframework.context.annotation.Configuration;
 

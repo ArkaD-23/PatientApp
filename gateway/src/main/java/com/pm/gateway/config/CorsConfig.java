@@ -13,11 +13,14 @@ public class CorsConfig {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/**") // Apply to all paths
-                        .allowedOrigins("*") // Allow all origins
-                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS") // Allowed HTTP methods
-                        .allowedHeaders("*"); // Allowed headers
+                registry.addMapping("/**")
+                        .allowedOriginPatterns("*") // allow all origins (Spring 2.4+)
+                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                        .allowedHeaders("*")
+                        .allowCredentials(false) // must be false if using "*"
+                        .maxAge(3600);
             }
         };
     }
 }
+

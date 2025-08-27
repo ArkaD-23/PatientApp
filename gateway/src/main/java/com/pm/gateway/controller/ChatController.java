@@ -1,25 +1,20 @@
 package com.pm.gateway.controller;
 
-import com.pm.chatservice.grpc.*;
-import com.pm.gateway.dto.BooleanDto;
 import com.pm.gateway.dto.ChatMessage;
 import com.pm.gateway.dto.ProfileDto;
 import com.pm.gateway.ws.chat.ChatNotification;
-import com.pm.userservice.grpc.*;
 import lombok.RequiredArgsConstructor;
-import net.devh.boot.grpc.client.inject.GrpcClient;
-import com.google.protobuf.Empty;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.Date;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Controller
@@ -29,114 +24,56 @@ import java.util.stream.Collectors;
 public class ChatController {
 
     private final SimpMessagingTemplate messagingTemplate;
+    private final RestTemplate restTemplate = new RestTemplate();
 
-    @GrpcClient("chatService")
-    private ChatServiceGrpc.ChatServiceBlockingStub chatServiceStub;
+    @Value("${user.service.url}")
+    private String userServiceUrl;
 
-    @GrpcClient("userService")
-    private UserServiceGrpc.UserServiceBlockingStub userServiceStub;
-
-    @MessageMapping("/user.addUser")
-    @SendTo("/user/public")
-    public BooleanDto add(@Payload UUID userId) {
-
-        UserIdRequest req = UserIdRequest.newBuilder()
-                .setId(userId.toString())
-                .build();
-
-        BooleanResponse res = userServiceStub.addUser(req);
-
-        return new BooleanDto(res.getStatus());
-    }
-
-    @MessageMapping("/user.disconnectUser")
-    @SendTo("/user/public")
-    public BooleanDto disconnect(@Payload UUID userId) {
-
-        UserIdRequest req = UserIdRequest.newBuilder()
-                .setId(userId.toString())
-                .build();
-
-        BooleanResponse res = userServiceStub.disconnectUser(req);
-
-        return new BooleanDto(res.getStatus());
-    }
+    @Value("${chat.service.url}")
+    private String chatServiceUrl;
 
     @GetMapping("/users")
     public ResponseEntity<List<ProfileDto>> findConnectedUsers() {
+        ProfileDto[] profiles = restTemplate.getForObject(
+                userServiceUrl + "/connected",
+                ProfileDto[].class
+        );
 
-        ProfileListResponse res = userServiceStub.getConnectedUsers(Empty.getDefaultInstance());
-
-        List<ProfileDto> list = res.getProfilesList().stream()
-                .map(profile -> new ProfileDto(
-                        profile.getId(),
-                        profile.getEmail(),
-                        profile.getFullname(),
-                        profile.getRole(),
-                        profile.getUsername()
-                ))
-                .toList();
-
-        return ResponseEntity.ok(list);
+        return ResponseEntity.ok(List.of(profiles));
     }
 
     @MessageMapping("/chat.send")
     public void processMessage(@Payload ChatMessage chatMessage) {
-
-        // build gRPC request
-        SaveChatMessageRequest req = SaveChatMessageRequest.newBuilder()
-                .setSenderId(chatMessage.getSenderId())
-                .setRecipientId(chatMessage.getRecipientId())
-                .setContent(chatMessage.getContent())
-                .build();
-
-        SaveChatMessageResponse savedMsg = chatServiceStub.saveMessage(req);
-
-        ChatNotification notification = new ChatNotification(
-                savedMsg.getMessage().getId(),
-                savedMsg.getMessage().getSenderId(),
-                savedMsg.getMessage().getRecipientId(),
-                savedMsg.getMessage().getContent()
+        ChatMessage savedMsg = restTemplate.postForObject(
+                chatServiceUrl + "/save",
+                chatMessage,
+                ChatMessage.class
         );
 
-        // send to recipient-specific topic
-        String recipientDest = "/topic/messages/" + savedMsg.getMessage().getRecipientId();
-        messagingTemplate.convertAndSend(recipientDest, notification);
+        ChatNotification notification = new ChatNotification(
+                savedMsg.getId(),
+                savedMsg.getSenderId(),
+                savedMsg.getRecipientId(),
+                savedMsg.getContent()
+        );
 
-        // also send to sender's topic
-        String senderDest = "/topic/messages/" + savedMsg.getMessage().getSenderId();
-        messagingTemplate.convertAndSend(senderDest, notification);
+        messagingTemplate.convertAndSend("/topic/messages/" + savedMsg.getRecipientId(), notification);
+
+        messagingTemplate.convertAndSend("/topic/messages/" + savedMsg.getSenderId(), notification);
     }
 
-
-
-    /**
-     * REST endpoint to fetch chat history
-     */
     @GetMapping("/messages/{senderId}/{recipientId}")
     public ResponseEntity<List<ChatMessage>> findChatMessages(
             @PathVariable String senderId,
             @PathVariable String recipientId) {
 
-        // build request
-        GetChatMessagesRequest req = GetChatMessagesRequest.newBuilder()
-                        .setSenderId(senderId)
-                        .setRecipientId(recipientId)
-                        .build();
+        ChatMessage[] messages = restTemplate.getForObject(
+                chatServiceUrl + "/messages/" + senderId + "/" + recipientId,
+                ChatMessage[].class
+        );
 
-        // fetch response
-        GetChatMessagesResponse res = chatServiceStub.getMessages(req);
-
-        // map gRPC messages to DTOs
-        List<ChatMessage> list = res.getMessagesList().stream()
-                .map(m -> new ChatMessage(
-                        m.getId(),
-                        m.getRoomId(),
-                        m.getSenderId(),
-                        m.getRecipientId(),
-                        m.getContent(),
-                        new Date(m.getTimestamp())
-                ))
+        List<ChatMessage> list = List.of(messages).stream()
+                .peek(m -> m.setTimestamp(new Date(m.getTimestamp().getTime())))
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(list);

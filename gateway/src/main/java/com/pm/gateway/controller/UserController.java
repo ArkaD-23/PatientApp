@@ -1,12 +1,12 @@
 package com.pm.gateway.controller;
 
-import com.google.protobuf.Empty;
 import com.pm.gateway.dto.*;
-import com.pm.userservice.grpc.*;
-import net.devh.boot.grpc.client.inject.GrpcClient;
-import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 
+import java.util.Arrays;
 import java.util.List;
 
 @RestController
@@ -14,67 +14,78 @@ import java.util.List;
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 public class UserController {
 
-    @GrpcClient("userService")
-    private UserServiceGrpc.UserServiceBlockingStub userServiceStub;
+    private final RestTemplate restTemplate = new RestTemplate();
+
+    @Value("${user.service.url}")
+    private String userServiceUrl;
 
     @GetMapping("/{email}/{token}")
-    public ResponseEntity<ProfileDto> getProfile(@PathVariable String email, @PathVariable String token) {
+    public ResponseEntity<ProfileDto> getProfile(@PathVariable String email,
+                                                 @PathVariable String token) {
+        try {
 
-        GetUserRequest req = GetUserRequest.newBuilder()
-                .setToken(token)
-                .setEmail(email)
-                .build();
+            ResponseEntity<ProfileDto> response = restTemplate.exchange(
+                    userServiceUrl + "/" + email + "/" + token,
+                    HttpMethod.GET,
+                    null,
+                    ProfileDto.class
+            );
 
-        ProfileResponse res = userServiceStub.getUser(req);
+            System.out.println(response.getBody());
 
-        System.out.println("getProfile in controller: " + res);
+            if (response.getBody() != null) {
+                return ResponseEntity.ok(response.getBody());
+            } else {
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+            }
 
-        return ResponseEntity.ok(new ProfileDto(res.getId(), res.getFullname(), res.getEmail(),  res.getRole(), res.getUsername()));
+        } catch (Exception e) {
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @GetMapping("/doctors")
     public ResponseEntity<List<ProfileDto>> getDoctors() {
+        try {
+            ResponseEntity<ProfileDto[]> response = restTemplate.exchange(
+                    userServiceUrl + "/doctors",
+                    HttpMethod.GET,
+                    null,
+                    ProfileDto[].class
+            );
 
-        ProfileListResponse res = userServiceStub.getAllDoctors(Empty.getDefaultInstance());
+            if (response.getBody() != null) {
+                return ResponseEntity.ok(Arrays.asList(response.getBody()));
+            } else {
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+            }
 
-        List<ProfileDto> list = res.getProfilesList().stream()
-                .map(profile -> new ProfileDto(
-                        profile.getId(),
-                        profile.getEmail(),
-                        profile.getFullname(),
-                        profile.getRole(),
-                        profile.getUsername()
-                ))
-                .toList();
-
-        return ResponseEntity.ok(list);
+        } catch (Exception e) {
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
-
-//    @PostMapping("/update")
-//    public ResponseEntity<ProfileDto> updateProfile(@RequestBody UpdateDto dto) {
-//
-//        UpdateRequest req = UpdateRequest.newBuilder()
-//                .setId(dto.getId())
-//                .setFullname(dto.getFullname())
-//                .setEmail(dto.getEmail())
-//                .setPassword(dto.getPassword())
-//                .setToken(dto.getToken())
-//                .build();
-//
-//        ProfileResponse res  = userServiceStub.update(req);
-//
-//        return ResponseEntity.ok(new ProfileDto(res.getId(), res.getFullname(), res.getEmail(),  res.getRole(), res.getSuccess(), res.getMessage()));
-//    }
 
     @DeleteMapping("/delete")
     public ResponseEntity<BooleanDto> deleteUser(@RequestBody DeleteUserDto dto) {
-        DeleteUserRequest req = DeleteUserRequest.newBuilder()
-                .setId(dto.getId())
-                .setToken(dto.getToken())
-                .build();
+        try {
+            String url = userServiceUrl + "/" + dto.getId();
 
-        BooleanResponse res = userServiceStub.deleteUser(req);
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Authorization", dto.getToken());
 
-        return ResponseEntity.ok(new BooleanDto(res.getStatus()));
+            HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+            ResponseEntity<BooleanDto> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.DELETE,
+                    entity,
+                    BooleanDto.class
+            );
+
+            return response;
+
+        } catch (Exception e) {
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }

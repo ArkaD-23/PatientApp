@@ -1,7 +1,8 @@
-package com.pm.notificationservice.service;
+package com.pm.notification_service.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pm.notificationservice.dto.AppointmentEvent;
+import com.pm.notification_service.dto.AppointmentEvent;
+import com.pm.notification_service.service.EmailService;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.annotation.KafkaListener;

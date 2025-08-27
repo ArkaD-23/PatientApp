@@ -29,7 +29,7 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public boolean createUser(ProfileDto dto) {
+    public Boolean createUser(ProfileDto dto) {
         if (userRepository.existsByEmail(dto.getEmail())) {
             return false;
         }
@@ -45,7 +45,7 @@ public class UserService {
         return true;
     }
 
-    public boolean validateUser(String email, String password) {
+    public Boolean validateUser(String email, String password) {
         User user = userRepository.findByEmail(email);
         return user != null && passwordEncoder.matches(password, user.getPassword());
     }
