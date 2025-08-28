@@ -36,16 +36,16 @@ public class ChatRestController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/messages")
+    @GetMapping("/messages/{senderId}/{recipientId}")
     public ResponseEntity<List<ChatMessage>> getMessages(
-            @RequestParam String senderId,
-            @RequestParam String recipientId) {
+            @PathVariable String senderId,
+            @PathVariable String recipientId) {
 
         var messages = chatMessageService.findChatMessages(senderId, recipientId);
 
         List<ChatMessage> response = messages.stream()
                 .map(m -> new ChatMessage(
-                        m.getId().toString(),
+                        m.getId(),
                         m.getRoomId(),
                         m.getSenderId(),
                         m.getRecipientId(),
@@ -57,11 +57,12 @@ public class ChatRestController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/room")
+    @GetMapping("/room/{senderId}/{recipientId}")
     public ResponseEntity<String> getChatRoomId(
-            @RequestParam String senderId,
-            @RequestParam String recipientId,
-            @RequestParam(defaultValue = "true") boolean createIfNotExists) {
+            @PathVariable String senderId,
+            @PathVariable String recipientId) {
+
+        boolean createIfNotExists = true;
 
         var chatIdOpt = chatRoomService.getChatRoomId(senderId, recipientId, createIfNotExists);
 

@@ -1,10 +1,13 @@
 package com.pm.gateway.controller;
 
 import com.pm.gateway.dto.ChatMessage;
+import com.pm.gateway.dto.LoginDto;
 import com.pm.gateway.dto.ProfileDto;
 import com.pm.gateway.ws.chat.ChatNotification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -44,22 +47,24 @@ public class ChatController {
 
     @MessageMapping("/chat.send")
     public void processMessage(@Payload ChatMessage chatMessage) {
-        ChatMessage savedMsg = restTemplate.postForObject(
-                chatServiceUrl + "/save",
-                chatMessage,
+        HttpEntity<ChatMessage> request = new HttpEntity<>(chatMessage);
+        ResponseEntity<ChatMessage> savedMsg = restTemplate.exchange(
+                chatServiceUrl + "/message",
+                HttpMethod.POST,
+                request,
                 ChatMessage.class
         );
 
         ChatNotification notification = new ChatNotification(
-                savedMsg.getId(),
-                savedMsg.getSenderId(),
-                savedMsg.getRecipientId(),
-                savedMsg.getContent()
+                savedMsg.getBody().getId(),
+                savedMsg.getBody().getSenderId(),
+                savedMsg.getBody().getRecipientId(),
+                savedMsg.getBody().getContent()
         );
 
-        messagingTemplate.convertAndSend("/topic/messages/" + savedMsg.getRecipientId(), notification);
+        messagingTemplate.convertAndSend("/topic/messages/" + savedMsg.getBody().getRecipientId(), notification);
 
-        messagingTemplate.convertAndSend("/topic/messages/" + savedMsg.getSenderId(), notification);
+        messagingTemplate.convertAndSend("/topic/messages/" + savedMsg.getBody().getSenderId(), notification);
     }
 
     @GetMapping("/messages/{senderId}/{recipientId}")

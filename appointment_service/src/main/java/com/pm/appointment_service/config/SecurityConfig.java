@@ -1,4 +1,4 @@
-package com.pm.user_service.config;
+package com.pm.appointment_service.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,8 +14,14 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
+                .cors(cors -> {}) // 👈 this enables your CorsConfig
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/v1/appointments/**", "/v1/users/**", "/v1/auth/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                        .requestMatchers(
+                                "/v1/users/**",
+                                "/v1/appointments/**",
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**"
+                        ).permitAll()
                         .anyRequest().permitAll() // or .authenticated()
                 );
         return http.build();

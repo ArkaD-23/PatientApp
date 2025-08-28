@@ -1,14 +1,16 @@
 package com.pm.gateway.controller;
 
-import com.pm.gateway.dto.AppointmentDto;
-import com.pm.gateway.dto.AppointmentResponseDto;
-import com.pm.gateway.dto.GetAppointmentsDto;
+import com.pm.gateway.dto.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -24,38 +26,69 @@ public class AppointmentController {
     private String appointmentServiceUrl;
 
     @GetMapping("/doctors/{id}")
-    public ResponseEntity<List<GetAppointmentsDto>> getDoctorsAppointment(@PathVariable("id") String id) {
+    public ResponseEntity<List<GetAppointmentsDto>> getDoctorsAppointment(@PathVariable String id) {
 
-        GetAppointmentsDto[] response = restTemplate.getForObject(
-                 appointmentServiceUrl + "/doctors/" + id,
-                GetAppointmentsDto[].class
-        );
+        try {
+            ResponseEntity<GetAppointmentsDto[]> response = restTemplate.exchange(
+                    appointmentServiceUrl + "/doctors/" + id,
+                    HttpMethod.GET,
+                    null,
+                    GetAppointmentsDto[].class
+            );
+            System.out.println(response.getBody());
+            if (response.getBody() != null) {
+                return ResponseEntity.ok(new ArrayList<>(Arrays.asList(response.getBody())));
+            } else {
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+            }
 
-        List<GetAppointmentsDto> appointments = Arrays.asList(response);
-        return ResponseEntity.ok(appointments);
+        } catch (Exception e) {
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @GetMapping("/patients/{id}")
     public ResponseEntity<List<GetAppointmentsDto>> getPatientsAppointment(@PathVariable("id") String id) {
 
-        GetAppointmentsDto[] response = restTemplate.getForObject(
-                appointmentServiceUrl + "/patients/" + id,
-                GetAppointmentsDto[].class
-        );
+        try {
+            ResponseEntity<GetAppointmentsDto[]> response = restTemplate.exchange(
+                    appointmentServiceUrl + "/patients/" + id,
+                    HttpMethod.GET,
+                    null,
+                    GetAppointmentsDto[].class
+            );
+            System.out.println(response.getBody());
+            if (response.getBody() != null) {
+                return ResponseEntity.ok(new ArrayList<>(Arrays.asList(response.getBody())));
+            } else {
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+            }
 
-        List<GetAppointmentsDto> appointments = Arrays.asList(response);
-        return ResponseEntity.ok(appointments);
+        } catch (Exception e) {
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @PostMapping("/book")
-    public ResponseEntity<AppointmentResponseDto> bookAppointment(@RequestBody AppointmentDto dto) {
+    public ResponseEntity<BooleanDto> bookAppointment(@RequestBody AppointmentDto dto) {
 
-        AppointmentResponseDto responseDto = restTemplate.postForObject(
-                appointmentServiceUrl + "/book",
-                dto,
-                AppointmentResponseDto.class
-        );
+        try {
+            HttpEntity<AppointmentDto> request = new HttpEntity<>(dto);
+            ResponseEntity<BooleanDto> response = restTemplate.exchange(
+                    appointmentServiceUrl + "/book",
+                    HttpMethod.POST,
+                    request,
+                    BooleanDto.class
+            );
+            System.out.println(response.getBody());
+            if (response.getBody() != null) {
+                return ResponseEntity.ok(response.getBody());
+            } else {
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+            }
 
-        return ResponseEntity.ok(responseDto);
+        } catch (Exception e) {
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }

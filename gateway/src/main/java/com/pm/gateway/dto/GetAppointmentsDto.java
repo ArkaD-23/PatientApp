@@ -2,6 +2,8 @@ package com.pm.gateway.dto;
 
 import lombok.*;
 
+import java.util.Date;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -24,4 +26,6 @@ public class GetAppointmentsDto {
     private String doctorName;
 
     private String patientName;
+
+    private Date creationTimeStamp;
 }

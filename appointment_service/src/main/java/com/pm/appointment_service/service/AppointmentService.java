@@ -1,11 +1,14 @@
 package com.pm.appointment_service.service;
 
 import com.pm.appointment_service.dto.AppointmentDto;
+import com.pm.appointment_service.dto.ProfileResponseDto;
 import com.pm.appointment_service.exception.AppointmentAlreadyPresentException;
 import com.pm.appointment_service.model.Appointment;
 import com.pm.appointment_service.repository.AppointmentRepository;
 import com.pm.appointment_service.util.AppointmentStatus;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -41,15 +44,24 @@ public class AppointmentService {
             throw new AppointmentAlreadyPresentException("Doctor not available at this time slot");
         }
 
-        // Call UserService REST instead of gRPC
-        Map<String, Object> doctor = restTemplate.getForObject(userServiceUrl, Map.class, doctorId);
-        Map<String, Object> patient = restTemplate.getForObject(userServiceUrl, Map.class, patientId);
+        ResponseEntity<ProfileResponseDto> doctor = restTemplate.exchange(
+                userServiceUrl + "/" + doctorId,
+                HttpMethod.GET,
+                null,
+                ProfileResponseDto.class
+        );
 
-        String doctorName = (String) doctor.get("fullname");
-        String patientName = (String) patient.get("fullname");
+        ResponseEntity<ProfileResponseDto> patient = restTemplate.exchange(
+                userServiceUrl + "/" + patientId,
+                HttpMethod.GET,
+                null,
+                ProfileResponseDto.class
+        );
 
-        String doctorEmail = (String) doctor.get("email");
-        String patientEmail = (String) patient.get("email");
+        String doctorName = doctor.getBody() != null ? doctor.getBody().getFullname() : null;
+        String patientName = patient.getBody() != null ? patient.getBody().getFullname() : null;
+        String doctorEmail = doctor.getBody() != null ? doctor.getBody().getEmail() : null;
+        String patientEmail = patient.getBody() != null ? patient.getBody().getEmail() : null;
 
         Appointment appointment = new Appointment(
                 patientId,

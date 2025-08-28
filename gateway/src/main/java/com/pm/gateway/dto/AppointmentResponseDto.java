@@ -11,6 +11,23 @@ import lombok.Setter;
 @AllArgsConstructor
 public class AppointmentResponseDto {
 
-    private String status;
-    private String appointmentId;
+    private String id;
+
+    private String patientId;
+
+    private String doctorId;
+
+    private String timeSlot;
+
+    private String date;
+
+    private AppointmentStatus status;
+
+    private String doctorName;
+
+    private String patientName;
+
+    private String doctorEmail;
+
+    private String patientEmail;
 }
